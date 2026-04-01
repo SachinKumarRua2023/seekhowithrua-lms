@@ -1581,3 +1581,231 @@ footer {
 ::-webkit-scrollbar-thumb:hover {
   background: #9333ea;
 }
+
+/* ==================== AUTHENTICATION STYLES ==================== */
+
+/* Auth Modal */
+#authModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+}
+
+.auth-modal-content {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px;
+  max-width: 450px;
+  width: 90%;
+  text-align: center;
+  animation: modalSlideIn 0.3s ease;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.auth-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 24px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.auth-close:hover {
+  color: var(--text-primary);
+}
+
+.auth-icon-large {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.auth-modal-content h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.auth-modal-content > p {
+  color: var(--text-secondary);
+  margin-bottom: 25px;
+}
+
+.auth-features {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.auth-features span {
+  background: rgba(124, 58, 237, 0.2);
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--border);
+  color: var(--text-primary);
+  padding: 14px 32px;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-outline:hover {
+  border-color: var(--primary);
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.auth-note {
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.auth-note a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+/* Course Locked State */
+.course-locked {
+  opacity: 0.8;
+  position: relative;
+}
+
+.course-locked:hover {
+  opacity: 1;
+  transform: translateY(-5px);
+}
+
+.course-lock-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 160px;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 14px;
+  color: white;
+}
+
+.course-lock-overlay span:first-child {
+  font-size: 32px;
+}
+
+.preview-badge {
+  background: var(--warning);
+  color: var(--bg-dark);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Header User Section */
+#headerRight {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-name {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.user-badge {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Trainer Admin Actions */
+.course-admin-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.course-card:hover .course-admin-actions {
+  opacity: 1;
+}
+
+.course-admin-actions button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.course-admin-actions button:hover {
+  background: white;
+  transform: scale(1.1);
+}
+
+/* Notification Types */
+.notification-info {
+  border-color: var(--secondary);
+}
+
+.notification-error {
+  border-color: var(--danger);
+}

@@ -219,16 +219,58 @@
 
   <script src="js/lms.js"></script>
   <script>
-    let currentEditingCourse = null;
-    let tempVideos = [];
-
+    // Check authentication on load
     document.addEventListener('DOMContentLoaded', () => {
+      const user = checkAuth();
+      const role = getUserRole();
+      
+      // Protect trainer routes
+      if (!isTrainer()) {
+        document.body.innerHTML = `
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; padding: 20px;">
+            <div style="font-size: 64px; margin-bottom: 20px;">🔒</div>
+            <h1 style="font-family: Orbitron, sans-serif; margin-bottom: 15px;">Trainer Access Only</h1>
+            <p style="color: var(--text-secondary); margin-bottom: 30px; max-width: 400px;">
+              This area is restricted to trainers and administrators. 
+              Please login with trainer credentials or contact support.
+            </p>
+            <div style="display: flex; gap: 15px;">
+              <button onclick="redirectToLogin()" class="btn btn-primary">Login as Trainer</button>
+              <a href="index.html" class="btn btn-secondary">Back to Courses</a>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      
+      // Update header with user info
+      const header = document.querySelector('header');
+      if (header) {
+        const userSection = document.createElement('div');
+        userSection.className = 'user-section';
+        userSection.id = 'headerRight';
+        userSection.innerHTML = `
+          <span class="user-badge">👨‍🏫 Trainer</span>
+          <span class="user-name">${user?.first_name || user?.username || 'Trainer'}</span>
+          <button onclick="logout()" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">Logout</button>
+        `;
+        header.appendChild(userSection);
+      }
+      
       loadTrainerStats();
       loadTrainerCourses();
 
       document.getElementById('createCourseForm').addEventListener('submit', handleCreateCourse);
       document.getElementById('addVideoForm').addEventListener('submit', handleAddVideo);
     });
+    
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      localStorage.removeItem('userData');
+      window.location.href = 'index.html';
+    }
 
     function handleCreateCourse(e) {
       e.preventDefault();
