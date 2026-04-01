@@ -1,42 +1,17 @@
 {
   "version": 2,
   "name": "seekhowithrua-lms",
-  "builds": [
-    {
-      "src": "frontend/**/*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "frontend/**/*.{css,js}",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/css/(.*)",
-      "dest": "/frontend/css/$1"
-    },
-    {
-      "src": "/js/(.*)",
-      "dest": "/frontend/js/$1"
-    },
-    {
-      "src": "/(.*\\.html)",
-      "dest": "/frontend/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/index.html"
-    }
+  "buildCommand": null,
+  "outputDirectory": "frontend",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/$1" }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        }
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
       ]
     }
   ]
