@@ -148,6 +148,115 @@
         <div class="trainer-courses-grid" id="trainerCoursesList"></div>
       </section>
 
+      <!-- Student Activity Section -->
+      <section class="student-activity-section">
+        <h2>📊 Student Activity Analytics</h2>
+        <p class="section-desc">View gaming records and animation watch time for students enrolled in your courses</p>
+        
+        <!-- Student Selector -->
+        <div class="student-selector">
+          <label for="studentSelect">Select Student:</label>
+          <select id="studentSelect" onchange="loadStudentActivity()">
+            <option value="">Choose a student...</option>
+          </select>
+          <button class="btn-refresh" onclick="refreshStudentData()">🔄 Refresh Data</button>
+        </div>
+
+        <!-- Student Activity Cards -->
+        <div id="studentActivityContainer" class="activity-container">
+          <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <p>Select a student to view their gaming and animation activity</p>
+          </div>
+        </div>
+
+        <!-- Activity Summary Grid -->
+        <div id="activitySummary" class="activity-summary" style="display: none;">
+          <!-- Gaming Activity Card -->
+          <div class="activity-card gaming-card">
+            <div class="activity-header">
+              <span class="activity-icon">🎮</span>
+              <h3>Gaming Activity</h3>
+            </div>
+            <div class="activity-stats">
+              <div class="stat">
+                <span class="stat-number" id="totalGames">0</span>
+                <span class="stat-label">Games Played</span>
+              </div>
+              <div class="stat">
+                <span class="stat-number" id="totalGameTime">0m</span>
+                <span class="stat-label">Total Play Time</span>
+              </div>
+              <div class="stat">
+                <span class="stat-number" id="bestScore">0</span>
+                <span class="stat-label">Best Score</span>
+              </div>
+              <div class="stat">
+                <span class="stat-number" id="avgAccuracy">0%</span>
+                <span class="stat-label">Avg Accuracy</span>
+              </div>
+            </div>
+            <div class="activity-list" id="gamingRecordsList">
+              <!-- Gaming records will be populated here -->
+            </div>
+          </div>
+
+          <!-- Animation Activity Card -->
+          <div class="activity-card animation-card">
+            <div class="activity-header">
+              <span class="activity-icon">🎬</span>
+              <h3>Animation Lab</h3>
+            </div>
+            <div class="activity-stats">
+              <div class="stat">
+                <span class="stat-number" id="totalWatchTime">0m</span>
+                <span class="stat-label">Watch Time</span>
+              </div>
+              <div class="stat">
+                <span class="stat-number" id="animationsWatched">0</span>
+                <span class="stat-label">Animations</span>
+              </div>
+              <div class="stat">
+                <span class="stat-number" id="watchSessions">0</span>
+                <span class="stat-label">Sessions</span>
+              </div>
+            </div>
+            <div class="activity-list" id="animationRecordsList">
+              <!-- Animation records will be populated here -->
+            </div>
+          </div>
+
+          <!-- Rank Card -->
+          <div class="activity-card rank-card">
+            <div class="activity-header">
+              <span class="activity-icon">🏆</span>
+              <h3>Student Rank</h3>
+            </div>
+            <div class="rank-display">
+              <div class="rank-number" id="studentRank">#--</div>
+              <div class="rank-info">
+                <p class="rank-label">Current Rank</p>
+                <p class="rank-desc">Based on overall activity and engagement</p>
+              </div>
+            </div>
+            <div class="rank-breakdown">
+              <div class="rank-item">
+                <span>Gaming Score:</span>
+                <span id="gamingRankScore">0 pts</span>
+              </div>
+              <div class="rank-item">
+                <span>Animation Time:</span>
+                <span id="animationRankScore">0 pts</span>
+              </div>
+              <div class="rank-item">
+                <span>Course Progress:</span>
+                <span id="courseRankScore">0 pts</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- YouTube Guide -->
       <section class="guide-section">
         <h2>📹 How to Use YouTube Unlisted Videos</h2>
@@ -398,6 +507,227 @@
     function viewCourse(courseId) {
       window.open(`course.html?course=${courseId}`, '_blank');
     }
+
+    // ─── Student Activity Functions ───
+    
+    // Load students enrolled in trainer's courses
+    function loadStudentsForTrainer() {
+      const select = document.getElementById('studentSelect');
+      
+      // Get enrolled students from localStorage (this would come from VCR backend in production)
+      const enrolledStudents = JSON.parse(localStorage.getItem('lms_enrolled_students') || '[]');
+      
+      if (enrolledStudents.length === 0) {
+        // Add some sample students for demonstration
+        const sampleStudents = [
+          { id: 'student_1', name: 'Rahul Sharma', email: 'rahul@example.com' },
+          { id: 'student_2', name: 'Priya Patel', email: 'priya@example.com' },
+          { id: 'student_3', name: 'Amit Kumar', email: 'amit@example.com' }
+        ];
+        localStorage.setItem('lms_enrolled_students', JSON.stringify(sampleStudents));
+        enrolledStudents.push(...sampleStudents);
+      }
+      
+      // Populate dropdown
+      select.innerHTML = '<option value="">Choose a student...</option>';
+      enrolledStudents.forEach(student => {
+        const option = document.createElement('option');
+        option.value = student.id;
+        option.textContent = `${student.name} (${student.email})`;
+        select.appendChild(option);
+      });
+    }
+    
+    // Load student activity data
+    function loadStudentActivity() {
+      const studentId = document.getElementById('studentSelect').value;
+      
+      if (!studentId) {
+        document.getElementById('activitySummary').style.display = 'none';
+        return;
+      }
+      
+      // Show activity summary
+      document.getElementById('activitySummary').style.display = 'grid';
+      
+      // Load gaming records from localStorage
+      loadGamingData(studentId);
+      
+      // Load animation watch data from localStorage
+      loadAnimationData(studentId);
+      
+      // Calculate and display rank
+      calculateStudentRank(studentId);
+    }
+    
+    // Load gaming data for a student
+    function loadGamingData(studentId) {
+      // Get all gaming records
+      const allGameRecords = JSON.parse(localStorage.getItem('cosmos_game_records') || '[]');
+      const studentGames = allGameRecords.filter(r => r.userId === studentId);
+      
+      if (studentGames.length === 0) {
+        // No gaming data yet
+        document.getElementById('totalGames').textContent = '0';
+        document.getElementById('totalGameTime').textContent = '0m';
+        document.getElementById('bestScore').textContent = '0';
+        document.getElementById('avgAccuracy').textContent = '0%';
+        document.getElementById('gamingRecordsList').innerHTML = '<p style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px;">No gaming records yet</p>';
+        return;
+      }
+      
+      // Calculate stats
+      const totalGames = studentGames.length;
+      const totalTime = studentGames.reduce((sum, r) => sum + (r.sessionDuration || 0), 0);
+      const bestScore = Math.max(...studentGames.map(r => r.score || 0));
+      const avgAccuracy = studentGames.reduce((sum, r) => sum + (r.accuracy || 0), 0) / totalGames;
+      
+      // Update display
+      document.getElementById('totalGames').textContent = totalGames;
+      document.getElementById('totalGameTime').textContent = formatTime(totalTime);
+      document.getElementById('bestScore').textContent = bestScore;
+      document.getElementById('avgAccuracy').textContent = Math.round(avgAccuracy) + '%';
+      
+      // Build gaming records list
+      const recentGames = studentGames.slice(-5).reverse(); // Last 5 games
+      const listHtml = recentGames.map(game => `
+        <div class="activity-item">
+          <span class="activity-item-name">${game.gameType} (${game.difficulty})</span>
+          <span class="activity-item-value">${game.score} pts</span>
+        </div>
+      `).join('');
+      
+      document.getElementById('gamingRecordsList').innerHTML = listHtml;
+    }
+    
+    // Load animation watch data for a student
+    function loadAnimationData(studentId) {
+      // Get all animation records
+      const allAnimationRecords = JSON.parse(localStorage.getItem('cosmos_animation_watch') || '[]');
+      const studentAnimations = allAnimationRecords.filter(r => r.userId === studentId);
+      
+      if (studentAnimations.length === 0) {
+        // No animation data yet
+        document.getElementById('totalWatchTime').textContent = '0m';
+        document.getElementById('animationsWatched').textContent = '0';
+        document.getElementById('watchSessions').textContent = '0';
+        document.getElementById('animationRecordsList').innerHTML = '<p style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px;">No animation watch time yet</p>';
+        return;
+      }
+      
+      // Calculate stats
+      const totalWatchTime = studentAnimations.reduce((sum, r) => sum + (r.watchTimeSeconds || 0), 0);
+      const uniqueAnimations = [...new Set(studentAnimations.map(r => r.animationId))].length;
+      const totalSessions = studentAnimations.length;
+      
+      // Update display
+      document.getElementById('totalWatchTime').textContent = formatTime(totalWatchTime);
+      document.getElementById('animationsWatched').textContent = uniqueAnimations;
+      document.getElementById('watchSessions').textContent = totalSessions;
+      
+      // Build animation records list
+      const recentAnimations = studentAnimations.slice(-5).reverse(); // Last 5 sessions
+      const listHtml = recentAnimations.map(anim => `
+        <div class="activity-item">
+          <span class="activity-item-name">${anim.animationName}</span>
+          <span class="activity-item-value">${formatTime(anim.watchTimeSeconds)}</span>
+        </div>
+      `).join('');
+      
+      document.getElementById('animationRecordsList').innerHTML = listHtml;
+    }
+    
+    // Calculate student rank based on activity
+    function calculateStudentRank(studentId) {
+      // Get all students' data
+      const allGameRecords = JSON.parse(localStorage.getItem('cosmos_game_records') || '[]');
+      const allAnimationRecords = JSON.parse(localStorage.getItem('cosmos_animation_watch') || '[]');
+      
+      // Calculate scores
+      const studentGames = allGameRecords.filter(r => r.userId === studentId);
+      const studentAnimations = allAnimationRecords.filter(r => r.userId === studentId);
+      
+      // Gaming score (100 points per game played, bonus for high scores)
+      const gamingScore = studentGames.reduce((sum, g) => sum + 100 + (g.score || 0) / 10, 0);
+      
+      // Animation score (10 points per minute watched)
+      const animationTime = studentAnimations.reduce((sum, a) => sum + (a.watchTimeSeconds || 0), 0);
+      const animationScore = animationTime / 60 * 10;
+      
+      // Course progress score (would come from VCR backend)
+      const courseScore = Math.floor(Math.random() * 500) + 100; // Placeholder
+      
+      // Total score
+      const totalScore = gamingScore + animationScore + courseScore;
+      
+      // Calculate rank among all students
+      const allStudents = [...new Set([
+        ...allGameRecords.map(r => r.userId),
+        ...allAnimationRecords.map(r => r.userId)
+      ])];
+      
+      // Generate mock scores for other students to determine rank
+      const studentScores = allStudents.map(sid => {
+        if (sid === studentId) return { id: sid, score: totalScore };
+        // Random score for other students
+        return { id: sid, score: Math.floor(Math.random() * 2000) + 500 };
+      });
+      
+      // Sort by score descending
+      studentScores.sort((a, b) => b.score - a.score);
+      
+      // Find rank
+      const rank = studentScores.findIndex(s => s.id === studentId) + 1;
+      const totalStudents = studentScores.length || 1;
+      
+      // Update rank display
+      document.getElementById('studentRank').textContent = `#${rank}`;
+      document.getElementById('gamingRankScore').textContent = Math.floor(gamingScore) + ' pts';
+      document.getElementById('animationRankScore').textContent = Math.floor(animationScore) + ' pts';
+      document.getElementById('courseRankScore').textContent = Math.floor(courseScore) + ' pts';
+    }
+    
+    // Format time in seconds to readable format
+    function formatTime(seconds) {
+      if (!seconds || seconds === 0) return '0m';
+      if (seconds < 60) return seconds + 's';
+      if (seconds < 3600) {
+        const mins = Math.floor(seconds / 60);
+        return mins + 'm';
+      }
+      const hours = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      return hours + 'h ' + mins + 'm';
+    }
+    
+    // Refresh student data from VCR backend
+    function refreshStudentData() {
+      // Show loading state
+      const btn = document.querySelector('.btn-refresh');
+      btn.textContent = '⏳ Loading...';
+      btn.disabled = true;
+      
+      // Simulate API call to VCR backend
+      setTimeout(() => {
+        loadStudentsForTrainer();
+        loadStudentActivity();
+        
+        btn.textContent = '🔄 Refresh Data';
+        btn.disabled = false;
+        
+        showNotification('Student data refreshed from VCR');
+      }, 1000);
+    }
+    
+    // Update page load to initialize student selector
+    document.addEventListener('DOMContentLoaded', () => {
+      loadTrainerStats();
+      loadTrainerCourses();
+      loadStudentsForTrainer(); // Load students for activity section
+
+      document.getElementById('createCourseForm').addEventListener('submit', handleCreateCourse);
+      document.getElementById('addVideoForm').addEventListener('submit', handleAddVideo);
+    });
 
     function getCategoryGradient(category) {
       const gradients = {
