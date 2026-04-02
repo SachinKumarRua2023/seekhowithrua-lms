@@ -486,10 +486,22 @@
 
   <script src="js/lms.js"></script>
   <script>
+    // ─── AUTHENTICATION CHECK ───
+    // Check if user is logged in
+    const currentUser = JSON.parse(localStorage.getItem('cosmos_user') || 'null');
+    const authToken = localStorage.getItem('cosmos_auth_token');
+    
+    if (!currentUser || !authToken) {
+      // User not logged in - redirect to enroll page with return URL
+      const currentUrl = encodeURIComponent(window.location.href);
+      window.location.href = `enroll.html?redirect=${currentUrl}&payment=success`;
+    }
+
     // Get URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const courseId = urlParams.get('course');
     const paymentId = urlParams.get('payment');
+    const userEmail = urlParams.get('email');
 
     document.addEventListener('DOMContentLoaded', () => {
       // Create confetti animation
@@ -501,7 +513,32 @@
       } else {
         showGenericSuccess();
       }
+      
+      // Auto-login from enrollment data if not logged in yet
+      if (userEmail && !currentUser) {
+        autoLoginFromEnrollment(userEmail, paymentId);
+      }
     });
+    
+    function autoLoginFromEnrollment(email, paymentId) {
+      // Get enrollment data
+      const enrollments = JSON.parse(localStorage.getItem('lms_enrollments') || '[]');
+      const enrollment = enrollments.find(e => e.studentEmail === email || e.paymentId === paymentId);
+      
+      if (enrollment) {
+        // Create user session from enrollment
+        const user = {
+          id: enrollment.studentEmail,
+          email: enrollment.studentEmail,
+          name: enrollment.studentName,
+          enrolled: true,
+          enrolledAt: enrollment.timestamp
+        };
+        localStorage.setItem('cosmos_user', JSON.stringify(user));
+        localStorage.setItem('cosmos_auth_token', 'enrollment_token_' + Date.now());
+        showNotification(`Welcome ${enrollment.studentName}! You're now logged in.`);
+      }
+    }
 
     function createConfetti() {
       const confettiContainer = document.getElementById('confetti');

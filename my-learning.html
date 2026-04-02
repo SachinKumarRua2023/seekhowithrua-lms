@@ -101,6 +101,17 @@
 
   <script src="js/lms.js"></script>
   <script>
+    // ─── AUTHENTICATION CHECK ───
+    // Check if user is logged in before allowing access to learning dashboard
+    const currentUser = JSON.parse(localStorage.getItem('cosmos_user') || 'null');
+    const authToken = localStorage.getItem('cosmos_auth_token');
+    
+    if (!currentUser || !authToken) {
+      // User not logged in - redirect to enroll page with return URL
+      const currentUrl = encodeURIComponent(window.location.href);
+      window.location.href = `enroll.html?redirect=${currentUrl}`;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       loadLearningDashboard();
     });
