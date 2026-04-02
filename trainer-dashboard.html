@@ -411,6 +411,38 @@
 
   <script src="js/lms.js"></script>
   <script>
+    // ─── TRAINER AUTHENTICATION CHECK ───
+    // Only Master Rua (Sachin) can access the trainer portal
+    const currentUser = JSON.parse(localStorage.getItem('cosmos_user') || 'null');
+    const authToken = localStorage.getItem('cosmos_auth_token');
+    
+    // Check if user is logged in
+    if (!currentUser || !authToken) {
+      // Not logged in - redirect to enroll
+      const currentUrl = encodeURIComponent(window.location.href);
+      window.location.href = `enroll.html?redirect=${currentUrl}`;
+    }
+    
+    // Check if user is the trainer (Master Rua)
+    // Allow only: seekhowithrua@gmail.com, or name containing "Sachin", "Master", or "Rua"
+    const isTrainer = currentUser && (
+      currentUser.email === 'seekhowithrua@gmail.com' ||
+      currentUser.email?.includes('sachin') ||
+      currentUser.email?.includes('master') ||
+      currentUser.email?.includes('rua') ||
+      currentUser.name?.toLowerCase().includes('sachin') ||
+      currentUser.name?.toLowerCase().includes('master') ||
+      currentUser.name?.toLowerCase().includes('rua') ||
+      currentUser.role === 'trainer' ||
+      currentUser.isTrainer === true
+    );
+    
+    if (!isTrainer) {
+      // Student trying to access trainer portal - redirect to their learning dashboard
+      alert('Access Denied: This area is restricted to trainers only.');
+      window.location.href = 'my-learning.html';
+    }
+
     let currentEditingCourse = null;
     let tempVideos = [];
 
