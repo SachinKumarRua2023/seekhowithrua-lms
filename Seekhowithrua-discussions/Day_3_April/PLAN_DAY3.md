@@ -1,34 +1,59 @@
-# SEEKHOWITHRUA — DAY 3 APRIL PLAN
-# Tomorrow's Focus: Replit + AI Agent Builder 100% Complete
+# SEEKHOWITHRUA — DAY 3 APRIL PLAN (UPDATED)
+# Tomorrow's Focus: Fix Backend + AI Agent Builder
+# Days 6-7: SEO BLITZ - 210 Pages + 50K Audience
 
 **Date:** April 3, 2026  
-**Goal:** Launch-Ready Backend + Builder Tools MVP  
-**Status:** 🔴 Password reset still failing on Render (502 error)
+**Goal:** Backend Green + AI Agent Builder MVP  
+**SEO Goal (Day 6-7):** 210 pages indexed, 50K+ organic audience
 
 ---
 
 ## 📋 TOMORROW'S TODO (Day 3 - April 3)
 
-### 🔴 PRIORITY 1: Fix Backend Deployment (Morning)
-- [ ] **Fix Render requirements.txt** - pandas/numpy/scikit-learn installing
-- [ ] **Test password reset API** - Must work before anything else
-- [ ] **Verify all auth endpoints** - login, register, logout, profile
-- [ ] **CORS final check** - All domains working
+### 🔴 PRIORITY 1: Fix Backend Deployment (Morning - MUST FIX)
+- [ ] **Verify google-auth installing** - Check Render logs
+- [ ] **Test all auth endpoints** - login, register, logout, password reset
+- [ ] **Verify CORS working** - Test from app.seekhowithrua.com
+- [ ] **Backend MUST be green** - No more 502 errors
 
 ### 🚀 PRIORITY 2: AI Agent Builder (Afternoon)
-- [ ] **Create Django backend** - models, views, urls
-- [ ] **Setup workflow models** - Workflow, Node, Connection, ExecutionLog
-- [ ] **Create workflow executor** - Celery + Redis
-- [ ] **Groq LLM integration** - Using existing TalkWithRua setup
-- [ ] **25+ node types** - Triggers, AI, Data, Action nodes
+- [ ] **Complete backend models** - Workflow, Node, Connection
+- [ ] **Create workflow executor** - Celery + Redis integration
+- [ ] **Groq LLM node** - Using existing TalkWithRua setup
 - [ ] **React Flow frontend** - Visual editor component
-- [ ] **Test workflow execution** - Simple 2-node workflow
+- [ ] **Test simple workflow** - 2-node automation
 
-### 📱 PRIORITY 3: Replit-Style Code Editor (Evening)
-- [ ] **Monaco Editor setup** - VS Code in browser
-- [ ] **Code execution API** - Judge0 or WebAssembly
+### 📱 PRIORITY 3: Replit Code Editor (Evening)
+- [ ] **Monaco Editor component** - VS Code in browser
+- [ ] **Code execution API** - Judge0 integration
 - [ ] **Python + JavaScript support**
-- [ ] **Save/share code snippets**
+
+---
+
+## 🔥 DAYS 6-7: SEO BLITZ (April 6-7) - MOST IMPORTANT
+
+### 🎯 GOAL: 50K+ Organic Audience + 210 Pages Indexed
+
+#### Day 6: SEO Audit + Content Creation
+- [ ] **Audit 210 pages** - Why not indexed? Fix coverage errors
+- [ ] **Google Search Console** - Submit sitemap, check errors
+- [ ] **Keyword research** - High volume Indian keywords:
+  - "AI course India 2026" (10K searches)
+  - "Learn Python free India" (20K searches)
+  - "Game development course" (8K searches)
+  - "Free n8n alternative" (5K searches)
+  - "Website builder free India" (10K searches)
+  - "App builder no code" (7K searches)
+- [ ] **Create 50 blog posts** - 2000+ words, SEO optimized
+- [ ] **Fix technical SEO** - Meta tags, schema markup, speed
+
+#### Day 7: Content Blast + Link Building
+- [ ] **Publish 50 SEO articles** - Target long-tail keywords
+- [ ] **Internal linking** - Connect all 210 pages
+- [ ] **Social signals** - Twitter, LinkedIn, Reddit promotion
+- [ ] **Backlinks** - 10 guest posts on EdTech blogs
+- [ ] **Monitor indexing** - Real-time Google Search Console tracking
+- [ ] **Target: 50K organic traffic**
 
 ---
 
