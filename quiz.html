@@ -3,12 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Python & ML Quiz - Test Your Knowledge | SeekhoWithRua</title>
-  <meta name="description" content="Free Python quiz with 30 beginner-friendly questions on data types, data structures, and machine learning basics. 30 minutes test with MCQ and coding questions.">
-  <meta name="keywords" content="Python quiz, ML quiz, data types quiz, coding test, beginner Python">
+  <title>SeekhoWithRua Python Session 3 Quiz | Data Types & ML Basics Test</title>
+  <meta name="description" content="Take SeekhoWithRua Python Session 3 Quiz. Test your knowledge of Python data types, data structures, and machine learning basics. 30 questions, 20 minutes, instant results with leaderboard.">
+  <meta name="keywords" content="seekhowithrua, swr, sikhowithrua, sikho with rua, seekho with rua, rua, seekhowithrua python quiz, seekhowithrua python session 3, python session 3 quiz, seekhowithrua test, python data types quiz, data structures quiz, ML basics quiz, python coding test, beginner python quiz, python mcq test, python online test">
+  
+  <!-- Open Graph for social sharing -->
+  <meta property="og:title" content="SeekhoWithRua Python Session 3 Quiz">
+  <meta property="og:description" content="Test your Python knowledge with 30 beginner-friendly questions on data types, data structures, and ML basics.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://lms.seekhowithrua.com/quiz.html">
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://lms.seekhowithrua.com/quiz.html">
+  
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/lms.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- JSON-LD Structured Data for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Quiz",
+    "name": "SeekhoWithRua Python Session 3 Quiz",
+    "description": "Free Python quiz covering data types, data structures, and machine learning basics. 30 questions with MCQ and coding challenges.",
+    "educationalLevel": "Beginner",
+    "about": "Python Programming Quiz",
+    "provider": {
+      "@type": "Organization",
+      "name": "SeekhoWithRua Coaching"
+    }
+  }
+  </script>
   <style>
     /* Quiz Specific Styles */
     .quiz-container {
@@ -793,7 +819,8 @@
   <div class="quiz-container">
     <!-- Quiz Header -->
     <div class="quiz-header">
-      <h1><span class="gradient-text">Python & ML</span> Quiz</h1>
+      <h1><span class="gradient-text">SeekhoWithRua</span> Python Session 3 Quiz</h1>
+      <p style="color: var(--text-secondary); margin-bottom: 20px;">Data Types, Data Structures & ML Basics Test</p>
       <div class="quiz-info">
         <div class="quiz-info-item">
           <span>📝</span>
@@ -1626,11 +1653,95 @@
       // Render leaderboard
       renderLeaderboard(userInfo.name, percentage, `${minutes}:${seconds.toString().padStart(2, '0')}`);
       
+      // Send email report to trainer
+      sendQuizReportToTrainer(correct, percentage, `${minutes}:${seconds.toString().padStart(2, '0')}`, performance);
+      
       // Show review
       renderReview();
       
       // Scroll to top
       window.scrollTo(0, 0);
+    }
+
+    // Send Quiz Report to Trainer
+    function sendQuizReportToTrainer(correct, percentage, timeTaken, performance) {
+      // Prepare detailed answers data
+      const detailedAnswers = quizData.map((q, i) => {
+        const isCorrect = q.type === 'mcq' 
+          ? answers[i] === q.correct 
+          : (answers[i] && q.checkCode(answers[i], ''));
+        
+        const studentAnswer = q.type === 'mcq' 
+          ? (answers[i] !== undefined ? q.options[answers[i]] : 'Not answered')
+          : (answers[i] ? 'Code submitted' : 'Not answered');
+        
+        const correctAnswer = q.type === 'mcq' ? q.options[q.correct] : q.expectedOutput || 'N/A';
+        
+        return {
+          questionNumber: i + 1,
+          category: q.category || 'General',
+          question: q.question,
+          isCorrect: isCorrect,
+          studentAnswer: studentAnswer,
+          correctAnswer: isCorrect ? '-' : correctAnswer
+        };
+      });
+      
+      // Prepare category scores
+      const categoryStats = calculateCategoryScores();
+      const categoryScores = {};
+      categoryStats.forEach(stat => {
+        categoryScores[stat.category] = {
+          correct: stat.correct,
+          total: stat.total,
+          percentage: stat.percentage
+        };
+      });
+      
+      // Prepare report data
+      const reportData = {
+        name: userInfo.name,
+        email: userInfo.email,
+        mobile: userInfo.mobile,
+        score: percentage,
+        totalQuestions: quizData.length,
+        correctAnswers: correct,
+        timeTaken: timeTaken,
+        performance: performance,
+        answers: detailedAnswers,
+        categoryScores: categoryScores,
+        submittedAt: new Date().toISOString()
+      };
+      
+      // Send to backend API
+      const API_URL = 'https://django-react-ml-app.onrender.com/api/lms/quiz/submit-report/';
+      
+      fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reportData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Quiz report sent:', data);
+        if (data.success) {
+          // Show success message to user
+          const reviewSection = document.getElementById('reviewSection');
+          const successBanner = document.createElement('div');
+          successBanner.style.cssText = 'background: rgba(46, 204, 113, 0.2); border: 2px solid #2ecc71; border-radius: 12px; padding: 20px; margin-bottom: 30px; text-align: center;';
+          successBanner.innerHTML = `
+            <div style="font-size: 24px; margin-bottom: 10px;">📧</div>
+            <h3 style="color: #2ecc71; margin-bottom: 5px;">Report Sent!</h3>
+            <p style="color: var(--text-secondary);">Your quiz results have been sent to the trainer.</p>
+          `;
+          reviewSection.insertBefore(successBanner, reviewSection.firstChild);
+        }
+      })
+      .catch(error => {
+        console.error('Failed to send report:', error);
+      });
     }
 
     // Render Charts
