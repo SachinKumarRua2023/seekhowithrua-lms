@@ -19,5 +19,4 @@ router.register(r'enrollment', views.EnrollmentViewSet, basename='enrollment')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('admin/reset-password/', views.reset_admin_password, name='reset-admin-password'),
 ]
