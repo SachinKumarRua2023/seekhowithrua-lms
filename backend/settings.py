@@ -140,6 +140,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database — Supabase Transaction Pooler (aws-1, IPv4, Render compatible)
+# Updated from aws-0 to aws-1 pooler - 2025-04-06
 DATABASES = {
     'default': {
         'ENGINE':   'django.db.backends.postgresql',
