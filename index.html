@@ -204,10 +204,10 @@
       @keyframes studentLoop1 { 0% { left: -80px; } 30% { left: calc(50% - 100px); transform: scale(1); } 35% { left: calc(50% - 30px); transform: scale(0.8); opacity: 1; } 40% { left: calc(50% - 30px); transform: scale(0.8); } 45% { left: calc(50% + 30px); transform: scale(1.1); } 50% { left: calc(50% + 100px); transform: scale(1); } 100% { left: 110%; } }
       @keyframes studentLoop2 { 0% { left: -80px; } 30% { left: calc(50% - 100px); transform: scale(1); } 35% { left: calc(50% - 30px); transform: scale(0.8); opacity: 1; } 40% { left: calc(50% - 30px); transform: scale(0.8); } 45% { left: calc(50% + 30px); transform: scale(1.1); } 50% { left: calc(50% + 100px); transform: scale(1); } 100% { left: 110%; } }
       @keyframes studentLoop3 { 0% { left: -80px; } 30% { left: calc(50% - 100px); transform: scale(1); } 35% { left: calc(50% - 30px); transform: scale(0.8); opacity: 1; } 40% { left: calc(50% - 30px); transform: scale(0.8); } 45% { left: calc(50% + 30px); transform: scale(1.1); } 50% { left: calc(50% + 100px); transform: scale(1); } 100% { left: 110%; } }
-      .student-journey.sad {
+      .sad {
         animation: fadeOut 8s linear infinite;
       }
-      .student-journey.happy {
+      .happy {
         animation: fadeIn 8s linear infinite;
         opacity: 0;
       }
@@ -217,15 +217,14 @@
       
       @keyframes fadeOut {
         0% { opacity: 1; }
-        35% { opacity: 1; }
+        32% { opacity: 1; }
         40% { opacity: 0; }
         100% { opacity: 0; }
       }
-      
       @keyframes fadeIn {
         0% { opacity: 0; }
         40% { opacity: 0; }
-        45% { opacity: 1; }
+        48% { opacity: 1; }
         100% { opacity: 1; }
       }
       @keyframes emojiFall { to { transform: translateY(500px) rotate(360deg); } }

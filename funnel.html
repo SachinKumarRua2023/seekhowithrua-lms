@@ -1183,20 +1183,19 @@
     .s2 .sad, .s2 .happy { animation-delay: 2.6s; }
     .s3 .sad, .s3 .happy { animation-delay: 5.3s; }
     
-    /* Sad emoji: visible at start, fades out at portal (35-45%), stays hidden */
+    /* Sad emoji: visible at start, fades out at portal (32-40%), stays hidden */
     @keyframes fadeOut {
       0% { opacity: 1; }
-      35% { opacity: 1; }
+      32% { opacity: 1; }
       40% { opacity: 0; }
-      45% { opacity: 0; }
       100% { opacity: 0; }
     }
     
-    /* Happy emoji: hidden at start, fades in after portal (45%), stays visible */
+    /* Happy emoji: hidden at start, fades in after portal (48%), stays visible */
     @keyframes fadeIn {
       0% { opacity: 0; }
       40% { opacity: 0; }
-      45% { opacity: 1; }
+      48% { opacity: 1; }
       100% { opacity: 1; }
     }
     
