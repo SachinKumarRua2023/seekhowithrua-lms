@@ -135,28 +135,18 @@ const COSMOS_AUTH = {
     if (this._initialized) return;
     this._initialized = true;
     
-    // Check URL for token from redirect (SSO from main app)
-    const tokenReceived = this.checkUrlForToken();
+    // Check URL for token from redirect
+    this.checkUrlForToken();
     
-    // If we received token via URL, trust it (don't verify immediately)
-    // This prevents redirect loop when coming from app.seekhowithrua.com
-    if (tokenReceived) {
-      console.log('[COSMOS_AUTH] Token received via SSO, skipping immediate verification');
-      return;
-    }
-    
-    // For stored tokens, verify in background without blocking/redirecting
+    // Verify stored token is still valid
     if (this.isAuthenticated()) {
-      this.verifyToken().then(isValid => {
-        if (!isValid) {
-          console.log('[COSMOS_AUTH] Stored token invalid, clearing auth');
-          this.clearAuth();
-          // Don't auto-redirect - let user click login manually
+      const isValid = await this.verifyToken();
+      if (!isValid) {
+        this.clearAuth();
+        if (!this.isLoginPage()) {
+          this.redirectToLogin();
         }
-      }).catch(err => {
-        console.error('[COSMOS_AUTH] Token verification error:', err);
-        // Don't clear auth or redirect on network errors
-      });
+      }
     }
     
     // Listen for auth changes in other tabs
