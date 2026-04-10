@@ -34,6 +34,82 @@ function checkMainAppAuth() {
 // Auto-check on load
 checkMainAppAuth();
 
+// ─── PROACTIVE SSO AUTH CHECK ───
+// If not authenticated via URL params, check localStorage or redirect to main app
+function checkSSOAuth() {
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // Skip if already authenticated
+  if (localStorage.getItem('cosmos_auth_token')) {
+    console.log('Already authenticated (localStorage)');
+    updateAuthUI();
+    return;
+  }
+  
+  // Skip if explicitly told not to check (coming from main app link)
+  if (urlParams.get('skip_sso') === '1') {
+    console.log('Skipping SSO check (skip_sso=1)');
+    return;
+  }
+  
+  // Check if we're in an iframe (avoid redirect loops)
+  if (window.self !== window.top) {
+    return;
+  }
+  
+  // Check if we've already tried SSO recently (prevent loops)
+  const lastSSOAttempt = sessionStorage.getItem('last_sso_attempt');
+  const now = Date.now();
+  if (lastSSOAttempt && (now - parseInt(lastSSOAttempt)) < 5000) {
+    return; // Don't retry within 5 seconds
+  }
+  
+  // Mark SSO attempt
+  sessionStorage.setItem('last_sso_attempt', now.toString());
+  
+  // Redirect to main app to check auth status
+  // Main app should verify its own auth and redirect back with token
+  const currentPage = encodeURIComponent(window.location.href);
+  const mainAppAuthUrl = `https://app.seekhowithrua.com/auth/check?redirect=${currentPage}`;
+  
+  console.log('Redirecting to main app for SSO check...');
+  window.location.href = mainAppAuthUrl;
+}
+
+// Check auth status and update UI
+function updateAuthUI() {
+  const token = localStorage.getItem('cosmos_auth_token');
+  const userData = localStorage.getItem('cosmos_user');
+  
+  if (token && userData) {
+    try {
+      const user = JSON.parse(userData);
+      // Update UI to show logged-in state
+      const userSection = document.querySelector('.user-section');
+      if (userSection) {
+        userSection.innerHTML = `
+          <div class="user-info" style="display: flex; align-items: center; gap: 10px;">
+            <span style="color: #fff; font-size: 14px;">👋 ${user.first_name || user.username}</span>
+            <button onclick="logout()" style="background: #ff4757; color: #fff; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 12px;">Logout</button>
+          </div>
+        `;
+      }
+    } catch (e) {
+      console.error('Failed to parse user data:', e);
+    }
+  }
+}
+
+// Logout function
+function logout() {
+  localStorage.removeItem('cosmos_auth_token');
+  localStorage.removeItem('cosmos_user');
+  window.location.reload();
+}
+
+// Run SSO check after a short delay (let page load first)
+setTimeout(checkSSOAuth, 100);
+
 // Course Data - 8 Pre-populated Courses
 const defaultCourses = [
   {
