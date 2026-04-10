@@ -136,10 +136,11 @@ const COSMOS_AUTH = {
     this._initialized = true;
     
     // Check URL for token from redirect
-    this.checkUrlForToken();
+    const tokenReceived = this.checkUrlForToken();
     
     // Verify stored token is still valid
-    if (this.isAuthenticated()) {
+    // BUT skip redirect if we just received a fresh token from URL
+    if (this.isAuthenticated() && !tokenReceived) {
       const isValid = await this.verifyToken();
       if (!isValid) {
         this.clearAuth();
