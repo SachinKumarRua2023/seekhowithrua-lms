@@ -18,6 +18,8 @@ import Employees from "../pages/Employees";
 import MnemonicSystem from "../pages/MnemonicSystem";
 import TalkWithRua from "../pages/TalkWithRua";
 import Profile from "../pages/Profile";
+import Courses from "../pages/Courses";
+import StudentDashboard from "../pages/StudentDashboard";
 import { useAuthStore } from "../store/authStore";
 
 // ─── Tab param list ────────────────────────────────────────────────────────
@@ -36,6 +38,8 @@ export type MoreStackParamList = {
   Trainer: undefined;
   Mnemonic: undefined;
   Profile: undefined;
+  Courses: undefined;
+  StudentDashboard: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -57,6 +61,8 @@ function MoreMenuScreen({ navigation }: any) {
   const { logout } = useAuthStore();
 
   const items = [
+    { label: "My Learning",       emoji: "🎓", screen: "StudentDashboard" },
+    { label: "Courses",           emoji: "📖", screen: "Courses" },
     { label: "ML Predictor",      emoji: "🤖", screen: "ML" },
     { label: "Syllabus",          emoji: "📚", screen: "Syllabus" },
     { label: "Employees",         emoji: "👥", screen: "Employees" },
@@ -105,6 +111,8 @@ function MoreStackNavigator() {
       <MoreStack.Screen name="Trainer"    component={TrainerDashboard}  options={{ title: "Trainer KPI 📊" }} />
       <MoreStack.Screen name="Mnemonic"   component={MnemonicSystem}    options={{ title: "Mnemonic 🧠" }} />
       <MoreStack.Screen name="Profile"    component={Profile}           options={{ title: "Profile 👤" }} />
+      <MoreStack.Screen name="Courses"    component={Courses}           options={{ title: "Courses 📖" }} />
+      <MoreStack.Screen name="StudentDashboard" component={StudentDashboard} options={{ title: "My Learning 🎓" }} />
     </MoreStack.Navigator>
   );
 }

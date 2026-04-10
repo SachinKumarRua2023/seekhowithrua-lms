@@ -6,6 +6,7 @@
   <title>My Learning | SeekhoWithRua LMS</title>
   <meta name="description" content="Track your learning progress, view enrolled courses, and earn certificates on SeekhoWithRua LMS.">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
   <link rel="stylesheet" href="css/lms.css">
 </head>
 <body>
@@ -25,59 +26,23 @@
   <main class="learning-dashboard">
     <div class="dashboard-header">
       <h1>My Learning Journey</h1>
-      <div class="stats-overview">
+      <div class="overall-stats">
         <div class="stat-card">
-          <div class="stat-icon">📚</div>
-          <div class="stat-value" id="coursesCompleted">0</div>
-          <div class="stat-label">Courses Completed</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">🎮</div>
-          <div class="stat-value" id="gamesPlayed">0</div>
-          <div class="stat-label">Games Played</div>
+          <span class="stat-value" id="enrolledCount">0</span>
+          <span class="stat-label">Enrolled</span>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">🏆</div>
-          <div class="stat-value" id="totalPoints">0</div>
-          <div class="stat-label">Total Points</div>
+          <span class="stat-value" id="inProgressCount">0</span>
+          <span class="stat-label">In Progress</span>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">📊</div>
-          <div class="stat-value" id="globalRank">-</div>
-          <div class="stat-label">Global Rank</div>
+          <span class="stat-value" id="completedCount">0</span>
+          <span class="stat-label">Completed</span>
         </div>
-      </div>
-
-      <!-- Gaming Scores Section -->
-      <div class="section-header">
-        <h2>🎮 Gaming Scores</h2>
-        <a href="https://gaming.seekhowithrua.com" target="_blank" class="btn-play">Play Games →</a>
-      </div>
-      <div class="gaming-scores" id="gamingScores">
-        <div class="empty-state">
-          <div class="empty-icon">🎮</div>
-          <p>No gaming scores yet</p>
-          <a href="https://gaming.seekhowithrua.com" target="_blank">Start playing to earn points!</a>
+        <div class="stat-card">
+          <span class="stat-value" id="certificatesCount">0</span>
+          <span class="stat-label">Certificates</span>
         </div>
-      </div>
-
-      <!-- Quiz Results Section -->
-      <div class="section-header">
-        <h2>📝 Quiz Results</h2>
-      </div>
-      <div class="quiz-results" id="quizResults">
-        <div class="empty-state">
-          <div class="empty-icon">📝</div>
-          <p>No quiz results yet</p>
-        </div>
-      </div>
-
-      <!-- Achievements Section -->
-      <div class="section-header">
-        <h2>🏆 Achievements</h2>
-      </div>
-      <div class="achievements-grid" id="achievementsGrid">
-        <!-- Achievements will be loaded here -->
       </div>
     </div>
 
@@ -138,6 +103,88 @@
 
   <script src="js/lms.js"></script>
   <script>
+    // ─── VISUAL LOCK OVERLAY ───
+    function showLockOverlay(message, redirectUrl) {
+      const overlay = document.createElement('div');
+      overlay.id = 'authLockOverlay';
+      overlay.innerHTML = `
+        <div style="
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(4, 4, 15, 0.95);
+          backdrop-filter: blur(10px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          font-family: 'Orbitron', sans-serif;
+        ">
+          <div style="
+            width: 120px;
+            height: 120px;
+            border: 3px solid #7c3aed;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+          ">🔒</div>
+          <h2 style="
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 15px;
+            text-align: center;
+          ">${message}</h2>
+          <p style="
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 400px;
+          ">Please log in to view your learning dashboard</p>
+          <a href="${redirectUrl}" style="
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #7c3aed, #00d4ff);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 16px;
+            transition: transform 0.2s;
+          " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+            🔐 Login to Continue
+          </a>
+        </div>
+        <style>
+          @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(124, 58, 237, 0); }
+          }
+        </style>
+      `;
+      document.body.appendChild(overlay);
+    }
+
+    // ─── AUTHENTICATION CHECK ───
+    // First check if auth came from main app (lms.js handles this)
+    // Then check localStorage for existing session
+    const currentUser = JSON.parse(localStorage.getItem('cosmos_user') || 'null');
+    const authToken = localStorage.getItem('cosmos_auth_token');
+    
+    // Only show lock if no valid session exists
+    if (!currentUser || !authToken) {
+      const currentUrl = encodeURIComponent(window.location.href);
+      // Redirect to main app login with return URL
+      const loginUrl = `https://app.seekhowithrua.com/login?redirect=${currentUrl}`;
+      showLockOverlay('My Learning Locked', loginUrl);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       loadLearningDashboard();
     });

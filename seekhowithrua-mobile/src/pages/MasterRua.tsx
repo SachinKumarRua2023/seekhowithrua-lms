@@ -8,7 +8,7 @@ import {
   ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from "react-native";
 import { MessageBubble, Message } from "../components/MessageBubble";
-import { COLORS, SPACING, RADIUS, FONT } from "../constants/theme";
+import { COLORS, SPACING, RADIUS, FONTS } from "../constants/theme";
 
 const GROQ_KEY    = process.env.EXPO_PUBLIC_GROQ_API_KEY || "";
 const GROQ_URL    = "https://api.groq.com/openai/v1/chat/completions";
@@ -143,7 +143,7 @@ export default function MasterRua() {
         <TextInput
           style={styles.input}
           placeholder="Ask the monk anything..."
-          placeholderTextColor={COLORS.muted}
+          placeholderTextColor={COLORS.textMuted}
           value={input}
           onChangeText={setInput}
           multiline
@@ -157,7 +157,7 @@ export default function MasterRua() {
           disabled={!input.trim() || loading}
         >
           {loading
-            ? <ActivityIndicator size="small" color={COLORS.white} />
+            ? <ActivityIndicator size="small" color={COLORS.textPrimary} />
             : <Text style={styles.sendBtnText}>↑</Text>
           }
         </TouchableOpacity>
@@ -167,25 +167,25 @@ export default function MasterRua() {
 }
 
 const styles = StyleSheet.create({
-  flex:             { flex: 1, backgroundColor: COLORS.bg },
+  flex:             { flex: 1, backgroundColor: COLORS.background },
   header:           { flexDirection: "row", alignItems: "center", padding: SPACING.md, borderBottomWidth: 1, borderBottomColor: COLORS.border, gap: SPACING.sm },
   headerEmoji:      { fontSize: 36 },
-  headerTitle:      { fontSize: FONT.size.md, fontWeight: "900", color: COLORS.cyan, fontFamily: "monospace", letterSpacing: 2 },
-  headerSub:        { color: COLORS.muted, fontSize: FONT.size.xs },
+  headerTitle:      { fontSize: FONTS.sizes.md, fontWeight: "900", color: COLORS.primary, fontFamily: "monospace", letterSpacing: 2 },
+  headerSub:        { color: COLORS.textMuted, fontSize: FONTS.sizes.xs },
   onlinePill:       { marginLeft: "auto", backgroundColor: "rgba(0,255,136,0.1)", borderRadius: RADIUS.full, paddingHorizontal: SPACING.sm, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(0,255,136,0.3)" },
-  onlineText:       { color: COLORS.green, fontSize: FONT.size.xs, fontWeight: "700" },
+  onlineText:       { color: COLORS.success, fontSize: FONTS.sizes.xs, fontWeight: "700" },
 
   messages:         { flex: 1 },
   typingIndicator:  { flexDirection: "row", alignItems: "center", gap: SPACING.sm, paddingHorizontal: SPACING.xl, paddingVertical: SPACING.sm },
-  typingText:       { color: COLORS.muted, fontSize: FONT.size.sm, fontStyle: "italic" },
+  typingText:       { color: COLORS.textMuted, fontSize: FONTS.sizes.sm, fontStyle: "italic" },
 
   suggestions:      { paddingHorizontal: SPACING.md, paddingBottom: SPACING.sm, gap: SPACING.sm },
-  suggestionChip:   { backgroundColor: COLORS.panel, borderRadius: RADIUS.full, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderWidth: 1, borderColor: COLORS.border },
-  suggestionText:   { color: COLORS.muted, fontSize: FONT.size.sm },
+  suggestionChip:   { backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.full, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderWidth: 1, borderColor: COLORS.border },
+  suggestionText:   { color: COLORS.textMuted, fontSize: FONTS.sizes.sm },
 
   inputRow:         { flexDirection: "row", padding: SPACING.sm, borderTopWidth: 1, borderTopColor: COLORS.border, gap: SPACING.sm, alignItems: "flex-end" },
-  input:            { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.lg, padding: SPACING.md, color: COLORS.text, fontSize: FONT.size.md, maxHeight: 120 },
-  sendBtn:          { width: 44, height: 44, borderRadius: RADIUS.full, backgroundColor: COLORS.purple, justifyContent: "center", alignItems: "center" },
+  input:            { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.lg, padding: SPACING.md, color: COLORS.textPrimary, fontSize: FONTS.sizes.md, maxHeight: 120 },
+  sendBtn:          { width: 44, height: 44, borderRadius: RADIUS.full, backgroundColor: COLORS.primary, justifyContent: "center", alignItems: "center" },
   sendBtnDisabled:  { opacity: 0.4 },
-  sendBtnText:      { color: COLORS.white, fontWeight: "900", fontSize: FONT.size.lg },
+  sendBtnText:      { color: COLORS.textPrimary, fontWeight: "900", fontSize: FONTS.sizes.lg },
 });

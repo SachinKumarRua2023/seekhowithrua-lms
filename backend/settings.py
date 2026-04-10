@@ -60,37 +60,38 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
-# CORS SETTINGS
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS SETTINGS — Enable cross-domain authentication (restrictively)
+CORS_ALLOW_ALL_ORIGINS = False  # MUST BE FALSE IN PRODUCTION - Use Allow-List
 CORS_ALLOW_CREDENTIALS = True
 
 ALLOWED_HOSTS = [
     'app.seekhowithrua.com',
+    'lms.seekhowithrua.com',
+    'gaming.seekhowithrua.com',
+    'animation.seekhowithrua.com',
+    'seo.seekhowithrua.com',
     'seekhowithrua.com',
     'www.seekhowithrua.com',
     'api.seekhowithrua.com',
     'django-react-ml-app.onrender.com',
+    'django-react-ml-app.vercel.app',
     '*',
 ]
 
 CORS_ALLOWED_ORIGINS = [
     'https://app.seekhowithrua.com',
+    'https://lms.seekhowithrua.com',
+    'https://gaming.seekhowithrua.com',
+    'https://animation.seekhowithrua.com',
+    'https://seo.seekhowithrua.com',
     'https://seekhowithrua.com',
     'https://www.seekhowithrua.com',
     'http://localhost:5173',
     'http://localhost:3000',
     'http://127.0.0.1:5173',
     'https://django-react-ml-app.vercel.app',
+    'https://django-react-ml-app.onrender.com',
 ]
-# CORS_ALLOWED_ORIGINS = [
-#     'seekhowithrua.com',
-#     'www.seekhowithrua.com',
-#     'api.seekhowithrua.com',
-#     "http://localhost:5173",
-#     "http://localhost:3000",
-#     "http://127.0.0.1:5173",
-#     "https://django-react-ml-app.vercel.app",
-# ]
 
 CORS_ALLOW_HEADERS = [
     'authorization',
@@ -99,6 +100,15 @@ CORS_ALLOW_HEADERS = [
     'accept',
     'origin',
     'x-csrftoken',
+    'access-control-allow-credentials',
+    'access-control-allow-origin',
+]
+
+# CORS — Expose auth headers so frontend can read them
+CORS_EXPOSE_HEADERS = [
+    'authorization',
+    'x-csrftoken',
+    'content-type',
 ]
 
 # REST Framework Configuration
@@ -140,14 +150,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database — Supabase Transaction Pooler (aws-1, IPv4, Render compatible)
+# Updated from aws-0 to aws-1 pooler - 2025-04-06
+# NEVER store credentials in source code - use environment variables!
 DATABASES = {
     'default': {
         'ENGINE':   'django.db.backends.postgresql',
-        'NAME':     'postgres',
-        'USER':     'postgres.vhkiwztuyypdtvduapqf',
-        'PASSWORD': 'Drunken@1234#4321',
-        'HOST':     'aws-1-ap-southeast-2.pooler.supabase.com',
-        'PORT':     '6543',
+        'NAME':     os.environ.get('DB_NAME', 'postgres'),
+        'USER':     os.environ.get('DB_USER', 'postgres.vhkiwztuyypdtvduapqf'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),  # MUST set via environment variable
+        'HOST':     os.environ.get('DB_HOST', 'aws-1-ap-southeast-2.pooler.supabase.com'),
+        'PORT':     os.environ.get('DB_PORT', '6543'),
         'OPTIONS':  {'sslmode': 'require'},
     }
 }
@@ -193,6 +205,11 @@ CSRF_COOKIE_HTTPONLY           = True
 SESSION_COOKIE_SAMESITE        = 'Lax'
 CSRF_COOKIE_SAMESITE           = 'Lax'
 
+# Cross-domain cookie sharing — enables SSO across subdomains
+SESSION_COOKIE_DOMAIN          = '.seekhowithrua.com'
+CSRF_COOKIE_DOMAIN             = '.seekhowithrua.com'
+SESSION_COOKIE_AGE             = 30 * 24 * 60 * 60  # 30 days
+
 # HSTS — tells browsers to always use HTTPS for 1 year
 SECURE_HSTS_SECONDS            = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -207,12 +224,13 @@ X_FRAME_OPTIONS                = 'DENY'
 AUTH_USER_MODEL = 'users.User'
 
 # Email Settings for LMS Notifications
+# NEVER store credentials in source code - use environment variables!
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'seekhowithrua@gmail.com'
-EMAIL_HOST_PASSWORD = 'Drunken@123'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'seekhowithrua@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')  # MUST set via environment variable
 DEFAULT_FROM_EMAIL = 'noreply@seekhowithrua.com'
 
 # LMS Payment Settings
@@ -251,3 +269,9 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': 'crontab(hour="20", minute="0")',
     },
 }
+
+# Google OAuth Configuration
+# Get these from Google Cloud Console: https://console.cloud.google.com/
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', 'https://api.seekhowithrua.com/api/auth/google/callback/')

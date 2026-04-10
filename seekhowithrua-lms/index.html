@@ -23,7 +23,12 @@
   <!-- Header -->
   <header>
     <div class="logo">SeekhoWith<span>Rua LMS</span></div>
-    <nav>
+    <div class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <nav id="mainNav">
       <a href="index.html" class="active">Courses</a>
       <a href="quiz.html">Quiz</a>
       <a href="my-learning.html">My Learning</a>
@@ -368,6 +373,7 @@
     </div>
   </footer>
 
+  <script src="../js/cosmos-auth.js"></script>
   <script src="js/lms.js"></script>
 </body>
 </html>

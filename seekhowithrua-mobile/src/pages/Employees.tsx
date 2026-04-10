@@ -8,8 +8,8 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
 } from "react-native";
-import { api } from "../services/api";
-import { COLORS, SPACING, RADIUS, FONT } from "../constants/theme";
+import api from "../services/api";
+import { COLORS, SPACING, RADIUS, FONTS } from "../constants/theme";
 
 interface Employee {
   id:         number;
@@ -214,38 +214,38 @@ export default function Employees() {
 const styles = StyleSheet.create({
   content:       { padding: SPACING.lg, paddingBottom: 40 },
   header:        { marginBottom: SPACING.lg },
-  headerTitle:   { fontSize: FONT.size.xl, fontWeight: "700", color: COLORS.text },
-  headerSub:     { color: COLORS.muted, fontSize: FONT.size.sm, marginTop: 4 },
+  headerTitle:   { fontSize: FONTS.sizes.xl, fontWeight: "700", color: COLORS.textPrimary },
+  headerSub:     { color: COLORS.textMuted, fontSize: FONTS.sizes.sm, marginTop: 4 },
 
-  formCard:      { backgroundColor: COLORS.panel, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.lg, marginBottom: SPACING.lg },
-  formTitle:     { color: COLORS.cyan, fontSize: FONT.size.md, fontWeight: "700", marginBottom: SPACING.md, fontFamily: "monospace" },
+  formCard:      { backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.lg, marginBottom: SPACING.lg },
+  formTitle:     { color: COLORS.primary, fontSize: FONTS.sizes.md, fontWeight: "700", marginBottom: SPACING.md, fontFamily: "monospace" },
   inputGroup:    { marginBottom: SPACING.md },
-  label:         { color: COLORS.muted, fontSize: FONT.size.xs, fontWeight: "600", marginBottom: SPACING.xs, letterSpacing: 1, fontFamily: "monospace" },
-  input:         { backgroundColor: "rgba(0,0,0,0.45)", borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: SPACING.md, color: COLORS.text, fontSize: FONT.size.md },
+  label:         { color: COLORS.textMuted, fontSize: FONTS.sizes.xs, fontWeight: "600", marginBottom: SPACING.xs, letterSpacing: 1, fontFamily: "monospace" },
+  input:         { backgroundColor: "rgba(0,0,0,0.45)", borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: SPACING.md, color: COLORS.textPrimary, fontSize: FONTS.sizes.md },
   formActions:   { flexDirection: "row", gap: SPACING.sm, marginTop: SPACING.sm },
   submitBtn:     { flex: 1, borderRadius: RADIUS.md, padding: SPACING.md, alignItems: "center" },
-  addBtn:        { backgroundColor: COLORS.purple },
-  updateBtn:     { backgroundColor: COLORS.orange },
-  submitBtnText: { color: COLORS.white, fontWeight: "700", fontSize: FONT.size.md },
-  cancelBtn:     { flex: 1, backgroundColor: COLORS.panel2, borderRadius: RADIUS.md, padding: SPACING.md, alignItems: "center", borderWidth: 1, borderColor: COLORS.border },
-  cancelBtnText: { color: COLORS.rose, fontWeight: "600" },
+  addBtn:        { backgroundColor: COLORS.primary },
+  updateBtn:     { backgroundColor: COLORS.secondary },
+  submitBtnText: { color: COLORS.textPrimary, fontWeight: "700", fontSize: FONTS.sizes.md },
+  cancelBtn:     { flex: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, padding: SPACING.md, alignItems: "center", borderWidth: 1, borderColor: COLORS.border },
+  cancelBtnText: { color: COLORS.error, fontWeight: "600" },
 
   listHeader:    { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: SPACING.md },
-  listTitle:     { color: COLORS.text, fontSize: FONT.size.md, fontWeight: "700" },
+  listTitle:     { color: COLORS.textPrimary, fontSize: FONTS.sizes.md, fontWeight: "700" },
   emptyState:    { alignItems: "center", paddingVertical: 40 },
   emptyIcon:     { fontSize: 48, marginBottom: SPACING.md },
-  emptyText:     { color: COLORS.muted, textAlign: "center" },
+  emptyText:     { color: COLORS.textMuted, textAlign: "center" },
 
-  empCard:       { flexDirection: "row", backgroundColor: COLORS.panel2, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.md, marginBottom: SPACING.sm, alignItems: "center", gap: SPACING.md },
+  empCard:       { flexDirection: "row", backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.md, marginBottom: SPACING.sm, alignItems: "center", gap: SPACING.md },
   avatar:        { width: 46, height: 46, borderRadius: RADIUS.full, backgroundColor: "rgba(102,0,255,0.2)", justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: COLORS.border },
-  avatarText:    { color: COLORS.violet, fontWeight: "800", fontSize: FONT.size.xl, fontFamily: "monospace" },
+  avatarText:    { color: COLORS.primary, fontWeight: "800", fontSize: FONTS.sizes.xl, fontFamily: "monospace" },
   empInfo:       { flex: 1 },
-  empName:       { color: COLORS.text, fontWeight: "700", fontSize: FONT.size.md },
+  empName:       { color: COLORS.textPrimary, fontWeight: "700", fontSize: FONTS.sizes.md },
   badgeRow:      { flexDirection: "row", alignItems: "center", gap: SPACING.sm, marginTop: 3 },
   deptBadge:     { paddingHorizontal: SPACING.sm, paddingVertical: 2, borderRadius: RADIUS.full, borderWidth: 1 },
-  deptText:      { fontSize: FONT.size.xs, fontWeight: "600" },
-  empAge:        { color: COLORS.muted, fontSize: FONT.size.xs },
-  empSalary:     { color: COLORS.green, fontWeight: "700", fontSize: FONT.size.sm, marginTop: 3 },
+  deptText:      { fontSize: FONTS.sizes.xs, fontWeight: "600" },
+  empAge:        { color: COLORS.textMuted, fontSize: FONTS.sizes.xs },
+  empSalary:     { color: COLORS.success, fontWeight: "700", fontSize: FONTS.sizes.sm, marginTop: 3 },
   empActions:    { gap: SPACING.xs },
   editBtn:       { backgroundColor: "rgba(255,149,0,0.15)", borderRadius: RADIUS.sm, padding: 8, borderWidth: 1, borderColor: "rgba(255,149,0,0.3)" },
   deleteBtn:     { backgroundColor: "rgba(255,45,120,0.12)", borderRadius: RADIUS.sm, padding: 8, borderWidth: 1, borderColor: "rgba(255,45,120,0.25)" },

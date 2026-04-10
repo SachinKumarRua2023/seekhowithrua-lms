@@ -9,11 +9,11 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { api } from "../services/api";
+import api from "../services/api";
 import { useAuthStore } from "../store/authStore";
 import { useAuth } from "../hooks/useAuth";
 import { RootStackParamList } from "../navigation/AppNavigator";
-import { COLORS, SPACING, RADIUS, FONT } from "../constants/theme";
+import { COLORS, SPACING, RADIUS, FONTS } from "../constants/theme";
 
 type NavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -121,31 +121,31 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  container:       { flex: 1, backgroundColor: COLORS.bg },
+  container:       { flex: 1, backgroundColor: COLORS.background },
   content:         { padding: SPACING.lg, paddingBottom: 40 },
   header:          { marginBottom: SPACING.lg },
-  headerTitle:     { fontSize: FONT.size.xl, fontWeight: "700", color: COLORS.text },
+  headerTitle:     { fontSize: FONTS.sizes.xl, fontWeight: "700", color: COLORS.textPrimary },
 
   avatarSection:   { alignItems: "center", marginBottom: SPACING.xl },
-  avatar:          { width: 90, height: 90, borderRadius: RADIUS.full, backgroundColor: "rgba(102,0,255,0.2)", justifyContent: "center", alignItems: "center", borderWidth: 2, borderColor: COLORS.purple, marginBottom: SPACING.md },
-  avatarText:      { fontSize: FONT.size.hero, fontWeight: "900", color: COLORS.violet, fontFamily: "monospace" },
-  displayName:     { fontSize: FONT.size.xl, fontWeight: "700", color: COLORS.text, marginBottom: SPACING.sm },
+  avatar:          { width: 90, height: 90, borderRadius: RADIUS.full, backgroundColor: "rgba(102,0,255,0.2)", justifyContent: "center", alignItems: "center", borderWidth: 2, borderColor: COLORS.primary, marginBottom: SPACING.md },
+  avatarText:      { fontSize: FONTS.sizes.xxl, fontWeight: "900", color: COLORS.primary, fontFamily: "monospace" },
+  displayName:     { fontSize: FONTS.sizes.xl, fontWeight: "700", color: COLORS.textPrimary, marginBottom: SPACING.sm },
   badgeRow:        { flexDirection: "row", gap: SPACING.sm },
   badge:           { paddingHorizontal: SPACING.md, paddingVertical: 4, borderRadius: RADIUS.full, borderWidth: 1 },
   badgeTrainer:    { backgroundColor: "rgba(255,215,0,0.1)", borderColor: "rgba(255,215,0,0.4)" },
   badgeLearner:    { backgroundColor: "rgba(0,245,255,0.1)", borderColor: "rgba(0,245,255,0.4)" },
   badgePremium:    { backgroundColor: "rgba(255,215,0,0.1)", borderColor: "rgba(255,215,0,0.4)", paddingHorizontal: SPACING.md, paddingVertical: 4, borderRadius: RADIUS.full, borderWidth: 1 },
-  badgeText:       { fontSize: FONT.size.sm, fontWeight: "600", color: COLORS.text },
+  badgeText:       { fontSize: FONTS.sizes.sm, fontWeight: "600", color: COLORS.textPrimary },
 
-  infoCard:        { backgroundColor: COLORS.panel, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.lg, marginBottom: SPACING.xl },
+  infoCard:        { backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.lg, marginBottom: SPACING.xl },
   infoRow:         { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: SPACING.xs },
-  infoLabel:       { color: COLORS.muted, fontSize: FONT.size.sm },
-  infoValue:       { color: COLORS.text, fontSize: FONT.size.sm, fontWeight: "600" },
+  infoLabel:       { color: COLORS.textMuted, fontSize: FONTS.sizes.sm },
+  infoValue:       { color: COLORS.textPrimary, fontSize: FONTS.sizes.sm, fontWeight: "600" },
   divider:         { height: 1, backgroundColor: COLORS.border, marginVertical: SPACING.xs },
 
   actions:         { gap: SPACING.md },
   voiceBtn:        { backgroundColor: "rgba(0,245,255,0.12)", borderRadius: RADIUS.md, padding: SPACING.md, alignItems: "center", borderWidth: 1, borderColor: "rgba(0,245,255,0.4)" },
-  voiceBtnText:    { color: COLORS.cyan, fontWeight: "700", fontSize: FONT.size.md },
+  voiceBtnText:    { color: COLORS.primary, fontWeight: "700", fontSize: FONTS.sizes.md },
   logoutBtn:       { backgroundColor: "rgba(255,45,120,0.1)", borderRadius: RADIUS.md, padding: SPACING.md, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,45,120,0.3)" },
-  logoutBtnText:   { color: COLORS.rose, fontWeight: "700", fontSize: FONT.size.md },
+  logoutBtnText:   { color: COLORS.error, fontWeight: "700", fontSize: FONTS.sizes.md },
 });

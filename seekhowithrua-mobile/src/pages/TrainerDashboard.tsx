@@ -6,9 +6,9 @@ import {
   View, Text, StyleSheet, ScrollView,
   ActivityIndicator, RefreshControl,
 } from "react-native";
-import { api } from "../services/api";
+import api from "../services/api";
 import { useAuth } from "../hooks/useAuth";
-import { COLORS, SPACING, RADIUS, FONT } from "../constants/theme";
+import { COLORS, SPACING, RADIUS, FONTS } from "../constants/theme";
 
 interface KPI {
   label: string;
@@ -130,25 +130,25 @@ export default function TrainerDashboard() {
 }
 
 const styles = StyleSheet.create({
-  container:     { flex: 1, backgroundColor: COLORS.bg },
+  container:     { flex: 1, backgroundColor: COLORS.background },
   content:       { padding: SPACING.lg, paddingBottom: 40 },
   header:        { marginBottom: SPACING.lg },
-  headerTitle:   { fontSize: FONT.size.xl, fontWeight: "700", color: COLORS.text },
-  headerSub:     { color: COLORS.muted, fontSize: FONT.size.sm, marginTop: 4 },
+  headerTitle:   { fontSize: FONTS.sizes.lg, fontWeight: "700", color: COLORS.textPrimary },
+  headerSub:     { color: COLORS.textMuted, fontSize: FONTS.sizes.sm, marginTop: 4 },
 
   kpiGrid:       { flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm, marginBottom: SPACING.xl },
-  kpiCard:       { width: "47%", backgroundColor: COLORS.panel, borderRadius: RADIUS.lg, borderWidth: 1, padding: SPACING.md, alignItems: "center" },
+  kpiCard:       { width: "47%", backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.lg, borderWidth: 1, padding: SPACING.md, alignItems: "center" },
   kpiIcon:       { fontSize: 28, marginBottom: SPACING.xs },
-  kpiValue:      { fontSize: FONT.size.xxl, fontWeight: "900", fontFamily: "monospace" },
-  kpiLabel:      { color: COLORS.muted, fontSize: FONT.size.xs, textAlign: "center", marginTop: 3 },
-  kpiDelta:      { color: COLORS.green, fontSize: FONT.size.xs, marginTop: 4 },
+  kpiValue:      { fontSize: FONTS.sizes.xl, fontWeight: "900", fontFamily: "monospace" },
+  kpiLabel:      { color: COLORS.textMuted, fontSize: FONTS.sizes.xs, textAlign: "center", marginTop: 3 },
+  kpiDelta:      { color: COLORS.success, fontSize: FONTS.sizes.xs, marginTop: 4 },
 
-  sectionTitle:  { fontSize: FONT.size.lg, fontWeight: "700", color: COLORS.text, marginBottom: SPACING.md },
-  leaderboard:   { backgroundColor: COLORS.panel, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, overflow: "hidden" },
+  sectionTitle:  { fontSize: FONTS.sizes.md, fontWeight: "700", color: COLORS.textPrimary, marginBottom: SPACING.md },
+  leaderboard:   { backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, overflow: "hidden" },
   leaderEntry:   { flexDirection: "row", alignItems: "center", padding: SPACING.md, borderBottomWidth: 1, borderBottomColor: COLORS.border, gap: SPACING.sm },
-  leaderRank:    { width: 28, textAlign: "center", fontSize: FONT.size.md, color: COLORS.gold },
-  leaderName:    { flex: 1, color: COLORS.text, fontSize: FONT.size.sm, fontWeight: "600" },
+  leaderRank:    { width: 28, textAlign: "center", fontSize: FONTS.sizes.md, color: COLORS.warning },
+  leaderName:    { flex: 1, color: COLORS.textPrimary, fontSize: FONTS.sizes.sm, fontWeight: "600" },
   scoreBar:      { width: 80, height: 6, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" },
   scoreBarFill:  { height: "100%", borderRadius: 3 },
-  leaderScore:   { width: 32, textAlign: "right", color: COLORS.cyan, fontWeight: "700", fontSize: FONT.size.sm, fontFamily: "monospace" },
+  leaderScore:   { width: 32, textAlign: "right", color: COLORS.primary, fontWeight: "700", fontSize: FONTS.sizes.sm, fontFamily: "monospace" },
 });

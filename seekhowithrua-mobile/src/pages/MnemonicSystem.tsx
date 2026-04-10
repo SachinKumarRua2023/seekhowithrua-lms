@@ -6,7 +6,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, ActivityIndicator,
 } from "react-native";
-import { COLORS, SPACING, RADIUS, FONT } from "../constants/theme";
+import { COLORS, SPACING, RADIUS, FONTS } from "../constants/theme";
 
 const GROQ_KEY = process.env.EXPO_PUBLIC_GROQ_API_KEY || "";
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
@@ -105,7 +105,7 @@ Return ONLY valid JSON (no markdown, no backticks) in this exact format:
             </View>
 
             <Section icon="🔤" label="MNEMONIC" color={COLORS.cyan}>
-              <Text style={[styles.sectionValue, { color: COLORS.cyan, fontSize: FONT.size.lg, letterSpacing: 2 }]}>
+              <Text style={[styles.sectionValue, { color: COLORS.primary, fontSize: FONTS.sizes.lg, letterSpacing: 2 }]}>
                 {card.mnemonic}
               </Text>
             </Section>
@@ -143,33 +143,33 @@ function Section({ icon, label, color, children }: { icon: string; label: string
 
 const secStyles = StyleSheet.create({
   container: { borderLeftWidth: 2, paddingLeft: SPACING.md, marginBottom: SPACING.md },
-  label:     { color: "#888", fontSize: FONT.size.xs, fontFamily: "monospace", letterSpacing: 1.5, marginBottom: SPACING.xs },
+  label:     { color: "#888", fontSize: FONTS.sizes.xs, fontFamily: "monospace", letterSpacing: 1.5, marginBottom: SPACING.xs },
 });
 
 const styles = StyleSheet.create({
-  container:    { flex: 1, backgroundColor: COLORS.bg },
+  container:    { flex: 1, backgroundColor: COLORS.background },
   header:       { padding: SPACING.lg, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  headerTitle:  { fontSize: FONT.size.xl, fontWeight: "700", color: COLORS.text },
-  headerSub:    { color: COLORS.muted, fontSize: FONT.size.sm, marginTop: 4 },
+  headerTitle:  { fontSize: FONTS.sizes.xl, fontWeight: "700", color: COLORS.textPrimary },
+  headerSub:    { color: COLORS.textMuted, fontSize: FONTS.sizes.sm, marginTop: 4 },
 
   content:      { padding: SPACING.lg, paddingBottom: 40 },
-  inputCard:    { backgroundColor: COLORS.panel, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.lg, marginBottom: SPACING.lg },
-  inputLabel:   { color: COLORS.muted, fontSize: FONT.size.xs, fontFamily: "monospace", letterSpacing: 2, marginBottom: SPACING.sm },
-  input:        { backgroundColor: "rgba(0,0,0,0.45)", borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: SPACING.md, color: COLORS.text, fontSize: FONT.size.md, minHeight: 70, marginBottom: SPACING.sm },
-  errorText:    { color: COLORS.rose, fontSize: FONT.size.sm, marginBottom: SPACING.sm },
-  btn:          { backgroundColor: COLORS.violet, borderRadius: RADIUS.md, padding: SPACING.md, alignItems: "center" },
-  btnText:      { color: COLORS.white, fontWeight: "700", fontSize: FONT.size.md },
+  inputCard:    { backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.lg, marginBottom: SPACING.lg },
+  inputLabel:   { color: COLORS.textMuted, fontSize: FONTS.sizes.xs, fontFamily: "monospace", letterSpacing: 2, marginBottom: SPACING.sm },
+  input:        { backgroundColor: "rgba(0,0,0,0.45)", borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: SPACING.md, color: COLORS.textPrimary, fontSize: FONTS.sizes.md, minHeight: 70, marginBottom: SPACING.sm },
+  errorText:    { color: COLORS.error, fontSize: FONTS.sizes.sm, marginBottom: SPACING.sm },
+  btn:          { backgroundColor: COLORS.primary, borderRadius: RADIUS.md, padding: SPACING.md, alignItems: "center" },
+  btnText:      { color: COLORS.textPrimary, fontWeight: "700", fontSize: FONTS.sizes.md },
 
-  card:         { backgroundColor: COLORS.panel2, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.lg, marginBottom: SPACING.md },
+  card:         { backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.lg, marginBottom: SPACING.md },
   cardHeader:   { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: SPACING.lg },
-  cardConcept:  { flex: 1, color: COLORS.text, fontSize: FONT.size.lg, fontWeight: "700" },
+  cardConcept:  { flex: 1, color: COLORS.textPrimary, fontSize: FONTS.sizes.lg, fontWeight: "700" },
   newBadge:     { backgroundColor: "rgba(0,255,136,0.1)", borderRadius: RADIUS.full, paddingHorizontal: SPACING.sm, paddingVertical: 3, borderWidth: 1, borderColor: "rgba(0,255,136,0.3)" },
-  newBadgeText: { color: COLORS.green, fontSize: FONT.size.xs, fontFamily: "monospace" },
+  newBadgeText: { color: COLORS.success, fontSize: FONTS.sizes.xs, fontFamily: "monospace" },
   sectionValue: { fontFamily: "monospace" },
-  sectionText:  { color: COLORS.text, fontSize: FONT.size.sm, lineHeight: 20 },
+  sectionText:  { color: COLORS.textPrimary, fontSize: FONTS.sizes.sm, lineHeight: 20 },
 
   emptyState:   { alignItems: "center", paddingVertical: 60 },
   emptyEmoji:   { fontSize: 64, marginBottom: SPACING.md },
-  emptyTitle:   { fontSize: FONT.size.lg, fontWeight: "700", color: COLORS.text, marginBottom: SPACING.sm },
-  emptyText:    { color: COLORS.muted, textAlign: "center" },
+  emptyTitle:   { fontSize: FONTS.sizes.lg, fontWeight: "700", color: COLORS.textPrimary, marginBottom: SPACING.sm },
+  emptyText:    { color: COLORS.textMuted, textAlign: "center" },
 });

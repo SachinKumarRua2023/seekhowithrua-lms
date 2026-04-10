@@ -1,108 +1,38 @@
-// SeekhoWithRua LMS JavaScript with Authentication
+// SeekhoWithRua LMS JavaScript
 
-// ==================== AUTHENTICATION SYSTEM ====================
-
-// Check URL params for token (cross-domain login support)
-function checkUrlForToken() {
+// ─── CROSS-DOMAIN AUTHENTICATION HANDLER ───
+// Handle login from main app (seekhowithrua.com)
+function checkMainAppAuth() {
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get('token');
   const userData = urlParams.get('user');
   
   if (token && userData) {
-    // Save to localStorage
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', userData);
-    
-    // Clean URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-    
-    return true;
+    try {
+      // Parse user data from main app
+      const user = JSON.parse(decodeURIComponent(userData));
+      
+      // Store in localStorage for LMS
+      localStorage.setItem('cosmos_auth_token', token);
+      localStorage.setItem('cosmos_user', JSON.stringify(user));
+      
+      // Clean up URL (remove token and user params)
+      const url = new URL(window.location.href);
+      url.searchParams.delete('token');
+      url.searchParams.delete('user');
+      window.history.replaceState({}, '', url.toString());
+      
+      console.log('Authenticated via main app:', user.email);
+      return true;
+    } catch (e) {
+      console.error('Failed to parse auth data:', e);
+    }
   }
   return false;
 }
 
-// Check if user is logged in (from main app localStorage)
-function checkAuth() {
-  // First check URL for token (from main app redirect)
-  checkUrlForToken();
-  
-  const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-  const userData = localStorage.getItem('user') || localStorage.getItem('userData');
-  
-  if (!token || !userData) {
-    return null;
-  }
-  
-  try {
-    return JSON.parse(userData);
-  } catch (e) {
-    return null;
-  }
-}
-
-// Get user role (guest, learner, trainer, admin)
-function getUserRole() {
-  const user = checkAuth();
-  if (!user) return 'guest';
-  
-  if (user.role === 'trainer' || user.is_staff || user.is_superuser) return 'trainer';
-  if (user.email?.includes('trainer') || user.username?.includes('trainer')) return 'trainer';
-  
-  return 'learner';
-}
-
-// Check if trainer/admin
-function isTrainer() {
-  return getUserRole() === 'trainer';
-}
-
-// Redirect to main app login
-function redirectToLogin() {
-  const currentUrl = encodeURIComponent(window.location.href);
-  window.location.href = `https://app.seekhowithrua.com/login?redirect=${currentUrl}`;
-}
-
-// Show login modal for guests
-function showLoginModal() {
-  const existing = document.getElementById('authModal');
-  if (existing) return;
-
-  const modal = document.createElement('div');
-  modal.id = 'authModal';
-  modal.innerHTML = `
-    <div class="auth-modal-overlay" onclick="closeLoginModal()"></div>
-    <div class="auth-modal-content">
-      <button class="auth-close" onclick="closeLoginModal()">×</button>
-      <div class="auth-icon-large">🎓</div>
-      <h2>Welcome to SeekhoWithRua LMS</h2>
-      <p>Login to access your courses and track progress!</p>
-      <div class="auth-features">
-        <span>📚 8 Premium Courses</span>
-        <span>🎥 64+ Videos</span>
-        <span>📊 Progress Tracking</span>
-      </div>
-      <button class="btn btn-primary btn-large" onclick="redirectToLogin()">
-        🔐 Login with Main App
-      </button>
-      <button class="btn btn-outline" onclick="browseAsGuest()">
-        👁️ Browse as Guest
-      </button>
-      <p class="auth-note">New here? <a href="https://app.seekhowithrua.com/enroll">Enroll Now</a></p>
-    </div>
-  `;
-  document.body.appendChild(modal);
-}
-
-function closeLoginModal() {
-  const modal = document.getElementById('authModal');
-  if (modal) modal.remove();
-}
-
-function browseAsGuest() {
-  closeLoginModal();
-  sessionStorage.setItem('guestMode', 'true');
-  showNotification('Browsing as guest - Login for full access', 'info');
-}
+// Auto-check on load
+checkMainAppAuth();
 
 // Course Data - 8 Pre-populated Courses
 const defaultCourses = [
@@ -373,67 +303,15 @@ function updateOverallProgress() {
 }
 
 function renderCourseCard(course) {
-  const role = getUserRole();
   const progress = getCourseProgress(course.id);
   const percentage = Math.round((progress.completedVideos.length / course.videos.length) * 100);
   const isCompleted = percentage === 100;
-  
-  // Guest sees locked preview
-  if (role === 'guest') {
-    return `
-      <div class="course-card course-locked" onclick="showLoginModal()">
-        <div class="course-image" style="background: ${course.gradient};">
-          <span>${course.icon}</span>
-          <span class="course-badge">${course.level}</span>
-          <div class="course-lock-overlay">
-            <span>🔒</span>
-            <small>Login to Access</small>
-          </div>
-        </div>
-        <div class="course-content">
-          <div class="course-category">${course.category.replace('-', ' ')}</div>
-          <h3 class="course-title">${course.title}</h3>
-          <p class="course-description">${course.description.substring(0, 80)}...</p>
-          <div class="course-meta">
-            <span>${course.videos.length} videos</span>
-            <span class="preview-badge">Preview</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-  
-  // Trainer sees edit options
-  if (role === 'trainer') {
-    return `
-      <div class="course-card">
-        <div class="course-image" style="background: ${course.gradient};">
-          <span>${course.icon}</span>
-          <span class="course-badge">${course.level}</span>
-          <div class="course-admin-actions">
-            <button onclick="event.stopPropagation(); alert('Edit: ${course.id}')">✏️</button>
-          </div>
-        </div>
-        <div class="course-content" onclick="window.location.href='course.html?course=${course.id}'">
-          <div class="course-category">${course.category.replace('-', ' ')}</div>
-          <h3 class="course-title">${course.title}</h3>
-          <p class="course-description">${course.description}</p>
-          <div class="course-meta">
-            <span>${course.videos.length} videos</span>
-            <span>👥 Manage</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-  
-  // Learner sees normal card with progress
+
   return `
     <div class="course-card" onclick="window.location.href='course.html?course=${course.id}'">
       <div class="course-image" style="background: ${course.gradient};">
         <span>${course.icon}</span>
         <span class="course-badge">${course.level}</span>
-        ${isCompleted ? '<span class="completion-badge">✓</span>' : ''}
       </div>
       <div class="course-content">
         <div class="course-category">${course.category.replace('-', ' ')}</div>
@@ -488,18 +366,6 @@ function renderCourseGrid() {
 
 // Event Listeners
 function initIndexPage() {
-  const user = checkAuth();
-  const isGuestMode = sessionStorage.getItem('guestMode') === 'true';
-  const role = getUserRole();
-  
-  // Show auth modal for non-logged in users (unless guest mode)
-  if (!user && !isGuestMode) {
-    showLoginModal();
-  }
-  
-  // Update header for logged in users
-  updateHeaderForUser(role, user);
-  
   createParticles();
   updateOverallProgress();
   renderCourseGrid();
@@ -530,28 +396,6 @@ function initIndexPage() {
 
   if (totalCoursesEl) totalCoursesEl.textContent = courses.length;
   if (totalVideosEl) totalVideosEl.textContent = totalVideos + '+';
-}
-
-function updateHeaderForUser(role, user) {
-  const headerRight = document.getElementById('headerRight');
-  if (!headerRight) return;
-  
-  if (role === 'guest') {
-    headerRight.innerHTML = `
-      <button class="btn btn-primary" onclick="redirectToLogin()">🔐 Login</button>
-    `;
-  } else if (role === 'trainer') {
-    headerRight.innerHTML = `
-      <span class="user-badge">👨‍🏫 Trainer</span>
-      <span class="user-name">${user?.first_name || user?.username || 'Trainer'}</span>
-      <a href="trainer-dashboard.html" class="btn btn-outline">Dashboard</a>
-    `;
-  } else {
-    headerRight.innerHTML = `
-      <span class="user-name">${user?.first_name || user?.username || 'Student'}</span>
-      <a href="my-learning.html" class="btn btn-outline">My Learning</a>
-    `;
-  }
 }
 
 // Initialize

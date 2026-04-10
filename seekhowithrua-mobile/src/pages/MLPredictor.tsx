@@ -7,8 +7,8 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, ActivityIndicator,
 } from "react-native";
-import { api } from "../services/api";
-import { COLORS, SPACING, RADIUS, FONT } from "../constants/theme";
+import api from "../services/api";
+import { COLORS, SPACING, RADIUS, FONTS } from "../constants/theme";
 
 interface Channel {
   channel_name: string;
@@ -153,34 +153,34 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  container:    { flex: 1, backgroundColor: COLORS.bg },
+  container:    { flex: 1, backgroundColor: COLORS.background },
   content:      { padding: SPACING.lg, paddingBottom: 40 },
   header:       { marginBottom: SPACING.lg },
-  headerTitle:  { fontSize: FONT.size.xl, fontWeight: "700", color: COLORS.text },
-  headerSub:    { color: COLORS.muted, fontSize: FONT.size.sm, marginTop: 4 },
+  headerTitle:  { fontSize: FONTS.sizes.xl, fontWeight: "700", color: COLORS.textPrimary },
+  headerSub:    { color: COLORS.textMuted, fontSize: FONTS.sizes.sm, marginTop: 4 },
 
-  card:         { backgroundColor: COLORS.panel, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.lg, marginBottom: SPACING.lg },
-  cardTitle:    { color: COLORS.cyan, fontSize: FONT.size.md, fontWeight: "700", marginBottom: SPACING.md },
+  card:         { backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.lg, marginBottom: SPACING.lg },
+  cardTitle:    { color: COLORS.primary, fontSize: FONTS.sizes.md, fontWeight: "700", marginBottom: SPACING.md },
   formGroup:    { marginBottom: SPACING.md },
-  label:        { color: COLORS.muted, fontSize: FONT.size.xs, fontWeight: "600", marginBottom: SPACING.xs, letterSpacing: 1, fontFamily: "monospace" },
-  input:        { backgroundColor: "rgba(0,0,0,0.45)", borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: SPACING.md, color: COLORS.text, fontSize: FONT.size.md },
+  label:        { color: COLORS.textMuted, fontSize: FONTS.sizes.xs, fontWeight: "600", marginBottom: SPACING.xs, letterSpacing: 1, fontFamily: "monospace" },
+  input:        { backgroundColor: "rgba(0,0,0,0.45)", borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: SPACING.md, color: COLORS.textPrimary, fontSize: FONTS.sizes.md },
   errorBox:     { backgroundColor: "rgba(255,45,120,0.1)", borderRadius: RADIUS.sm, padding: SPACING.sm, marginBottom: SPACING.sm, borderWidth: 1, borderColor: "rgba(255,45,120,0.3)" },
-  errorText:    { color: COLORS.rose, fontSize: FONT.size.sm },
-  btn:          { backgroundColor: COLORS.cyan, borderRadius: RADIUS.md, padding: SPACING.md, alignItems: "center", marginTop: SPACING.sm },
-  btnText:      { color: COLORS.bg, fontWeight: "700", fontSize: FONT.size.md },
+  errorText:    { color: COLORS.error, fontSize: FONTS.sizes.sm },
+  btn:          { backgroundColor: COLORS.primary, borderRadius: RADIUS.md, padding: SPACING.md, alignItems: "center", marginTop: SPACING.sm },
+  btnText:      { color: COLORS.background, fontWeight: "700", fontSize: FONTS.sizes.md },
 
   predRow:      { flexDirection: "row", gap: SPACING.md, marginBottom: SPACING.lg },
-  predCard:     { flex: 1, backgroundColor: COLORS.panel2, borderRadius: RADIUS.lg, borderWidth: 1, padding: SPACING.md, alignItems: "center" },
+  predCard:     { flex: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, padding: SPACING.md, alignItems: "center" },
   predIcon:     { fontSize: 28, marginBottom: SPACING.xs },
-  predValue:    { fontSize: FONT.size.xl, fontWeight: "800", fontFamily: "monospace" },
-  predLabel:    { color: COLORS.muted, fontSize: FONT.size.xs, textAlign: "center", marginTop: SPACING.xs },
+  predValue:    { fontSize: FONTS.sizes.xl, fontWeight: "800", fontFamily: "monospace" },
+  predLabel:    { color: COLORS.textMuted, fontSize: FONTS.sizes.xs, textAlign: "center", marginTop: SPACING.xs },
 
-  sectionTitle: { color: COLORS.text, fontSize: FONT.size.lg, fontWeight: "700", marginBottom: SPACING.md },
-  channelCard:  { flexDirection: "row", backgroundColor: COLORS.panel2, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.md, marginBottom: SPACING.sm, gap: SPACING.md, alignItems: "center" },
+  sectionTitle: { color: COLORS.textPrimary, fontSize: FONTS.sizes.lg, fontWeight: "700", marginBottom: SPACING.md },
+  channelCard:  { flexDirection: "row", backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.md, marginBottom: SPACING.sm, gap: SPACING.md, alignItems: "center" },
   rankBadge:    { width: 32, height: 32, borderRadius: RADIUS.full, backgroundColor: "rgba(0,245,255,0.1)", justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "rgba(0,245,255,0.3)" },
-  rankText:     { color: COLORS.cyan, fontWeight: "700", fontSize: FONT.size.sm },
-  channelName:  { color: COLORS.text, fontWeight: "700", fontSize: FONT.size.md, marginBottom: SPACING.xs },
+  rankText:     { color: COLORS.primary, fontWeight: "700", fontSize: FONTS.sizes.sm },
+  channelName:  { color: COLORS.textPrimary, fontWeight: "700", fontSize: FONTS.sizes.md, marginBottom: SPACING.xs },
   statsRow:     { flexDirection: "row", gap: SPACING.md, flexWrap: "wrap" },
-  statLabel:    { color: COLORS.muted, fontSize: FONT.size.xs },
-  statValue:    { color: COLORS.cyan, fontWeight: "700", fontSize: FONT.size.sm },
+  statLabel:    { color: COLORS.textMuted, fontSize: FONTS.sizes.xs },
+  statValue:    { color: COLORS.primary, fontWeight: "700", fontSize: FONTS.sizes.sm },
 });

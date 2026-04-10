@@ -49,6 +49,21 @@ export const COLORS = {
   // Borders
   border: 'rgba(255,255,255,0.08)',
   borderLight: 'rgba(255,255,255,0.15)',
+  
+  // Legacy aliases (for backward compatibility with existing files)
+  get bg() { return this.background; },
+  get text() { return this.textPrimary; },
+  get muted() { return this.textMuted; },
+  get panel() { return this.surfaceAlt; },
+  get cyan() { return this.primary; },
+  get violet() { return this.primary; },
+  get purple() { return this.primary; },
+  get green() { return this.success; },
+  get gold() { return this.warning; },
+  get orange() { return this.secondary; },
+  get rose() { return this.error; },
+  get aurora() { return this.primary; },
+  get white() { return this.textPrimary; },
 };
 
 // FONTS used by TalkWithRua.tsx

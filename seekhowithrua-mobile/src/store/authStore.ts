@@ -14,6 +14,9 @@ interface User {
   email: string;
   first_name?: string;
   last_name?: string;
+  role?: string;
+  profile?: { role?: string };
+  is_premium?: boolean;
 }
 
 interface AuthState {

@@ -1,14 +1,16 @@
 // mobile/src/pages/LoginSignupLogout.tsx
 // Replaces: localStorage → SecureStore, useNavigate → authStore, form → RN inputs
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 import { useAuthStore } from '../store/authStore';
 import { COLORS, FONTS, SPACING, RADIUS } from '../constants/theme';
-import api from '../services/api';
+import api, { authAPI } from '../services/api';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 
 type Mode = 'login' | 'signup';
 
@@ -44,14 +46,81 @@ export default function LoginSignupLogout() {
     }
     setLoading(true); setError('');
     try {
-      const res = await api.post('api/login/', {
-        email: form.email, password: form.password,
-      });
+      const res = await authAPI.login(form.email, form.password);
       const { token, user } = res.data;
       await setAuth(token, user);
-      // Navigation handled automatically by AppNavigator watching token
     } catch (err: any) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOAuthCallback = useCallback((event: Linking.EventType) => {
+    const url = event.url;
+    if (url && url.includes('auth/callback')) {
+      // Parse token from URL
+      const params = new URLSearchParams(url.split('?')[1]);
+      const token = params.get('token');
+      const userStr = params.get('user');
+      
+      if (token && userStr) {
+        try {
+          const user = JSON.parse(decodeURIComponent(userStr));
+          setAuth(token, user);
+          WebBrowser.dismissBrowser();
+        } catch (e) {
+          setError('Failed to parse user data from Google auth');
+        }
+      } else {
+        setError('Google authentication failed - no token received');
+      }
+      setLoading(false);
+    }
+  }, [setAuth]);
+
+  useEffect(() => {
+    const subscription = Linking.addEventListener('url', handleOAuthCallback);
+    return () => subscription.remove();
+  }, [handleOAuthCallback]);
+
+  const handleGoogleAuth = async () => {
+    setLoading(true); setError('');
+    try {
+      // Get the redirect URL
+      const redirectUrl = Linking.createURL('auth/callback');
+      const googleAuthUrl = `${api.defaults.baseURL}/api/auth/google/?redirect_uri=${encodeURIComponent(redirectUrl)}`;
+      
+      // Open browser for OAuth
+      const result = await WebBrowser.openAuthSessionAsync(
+        googleAuthUrl,
+        redirectUrl,
+        { showInRecents: true }
+      );
+      
+      if (result.type === 'success' && result.url) {
+        // Parse the callback URL
+        const params = new URLSearchParams(result.url.split('?')[1]);
+        const token = params.get('token');
+        const userStr = params.get('user');
+        
+        if (token && userStr) {
+          try {
+            const user = JSON.parse(decodeURIComponent(userStr));
+            await setAuth(token, user);
+          } catch (e) {
+            setError('Failed to parse user data');
+          }
+        } else {
+          setError('Google authentication failed');
+        }
+      } else if (result.type === 'cancel') {
+        setError('Google sign-in was cancelled');
+      } else {
+        setError('Google authentication failed. Please try again.');
+      }
+    } catch (err: any) {
+      setError('Google authentication failed: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -66,13 +135,12 @@ export default function LoginSignupLogout() {
     }
     setLoading(true); setError('');
     try {
-      const res = await api.post('api/register/', {
+      const res = await authAPI.signup({
+        username: form.email,
         email: form.email,
         password: form.password,
-        confirm_password: form.confirm_password,
         first_name: form.first_name,
         last_name: form.last_name,
-        role: form.role,
       });
       const { token, user } = res.data;
       await setAuth(token, user);
@@ -237,6 +305,23 @@ export default function LoginSignupLogout() {
             }
           </TouchableOpacity>
 
+          {/* OR Divider */}
+          <View style={styles.orContainer}>
+            <View style={styles.orLine} />
+            <Text style={styles.orText}>OR</Text>
+            <View style={styles.orLine} />
+          </View>
+
+          {/* Google Auth Button */}
+          <TouchableOpacity
+            style={[styles.googleBtn, loading && styles.btnDisabled]}
+            onPress={handleGoogleAuth}
+            disabled={loading}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.googleBtnText}>🔍 Continue with Google</Text>
+          </TouchableOpacity>
+
           {/* Footer toggle */}
           <Text style={styles.toggleText}>
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
@@ -362,6 +447,36 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#fff', fontWeight: '800', fontSize: FONTS.sizes.lg, letterSpacing: 0.5 },
+  orContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: SPACING.md,
+  },
+  orLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.border,
+  },
+  orText: {
+    color: COLORS.textMuted,
+    fontSize: FONTS.sizes.sm,
+    marginHorizontal: SPACING.md,
+    fontWeight: '600',
+  },
+  googleBtn: {
+    backgroundColor: '#fff',
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: SPACING.md,
+  },
+  googleBtnText: {
+    color: '#333',
+    fontWeight: '700',
+    fontSize: FONTS.sizes.md,
+  },
   toggleText: { textAlign: 'center', color: COLORS.textMuted, fontSize: FONTS.sizes.sm },
   toggleLink: { color: COLORS.primary, fontWeight: '700', textDecorationLine: 'underline' },
   footer: {
