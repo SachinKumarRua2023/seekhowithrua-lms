@@ -147,7 +147,7 @@
     // First check if auth came from main app (lms.js handles this)
     // Then check localStorage for existing session
     const currentUser = JSON.parse(localStorage.getItem('cosmos_user') || 'null');
-    const authToken = localStorage.getItem('cosmos_auth_token');
+    const authToken = localStorage.getItem('cosmos_token');
     
     // Only show lock if no valid session exists
     if (!currentUser || !authToken) {
