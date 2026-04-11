@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Builder Lab | SeekhoWithRua</title>
+  <meta name="description" content="Build mobile apps with no-code and low-code tools. Learn React Native, Flutter, and app development.">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="../js/cosmos-auth.js"></script>
+  <script src="js/auth.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0d0d2a 100%);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .particles {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    
+    .particle {
+      position: absolute;
+      width: 4px; height: 4px;
+      background: rgba(124, 58, 237, 0.3);
+      border-radius: 50%;
+      animation: float 20s infinite linear;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+    }
+    
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+      background: rgba(10, 10, 26, 0.8);
+      backdrop-filter: blur(10px);
+    }
+    
+    .logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #7c3aed, #00d4ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .logo span {
+      color: #9E9BFF;
+      -webkit-text-fill-color: #9E9BFF;
+    }
+    
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    nav a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      margin-left: 30px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    
+    nav a:hover { color: #7c3aed; }
+    
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .user-info {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(124, 58, 237, 0.1);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      padding: 8px 15px;
+      border-radius: 25px;
+    }
+    
+    .user-info.show { display: flex; }
+    
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #7c3aed;
+    }
+    
+    .user-name { font-size: 13px; color: #fff; font-weight: 500; }
+    
+    .logout-btn {
+      background: rgba(239, 68, 68, 0.2);
+      border: none; color: #ef4444;
+      padding: 6px 12px; border-radius: 15px;
+      font-size: 12px; cursor: pointer; transition: all 0.3s;
+    }
+    
+    .logout-btn:hover { background: rgba(239, 68, 68, 0.3); }
+    
+    .login-btn {
+      background: linear-gradient(135deg, #7c3aed, #00d4ff);
+      border: none; color: #fff;
+      padding: 8px 16px; border-radius: 20px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: all 0.3s;
+      display: flex; align-items: center; gap: 6px;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    
+    .login-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+    }
+    
+    .hero {
+      position: relative; z-index: 10;
+      text-align: center;
+      padding: 80px 20px 60px;
+      max-width: 900px; margin: 0 auto;
+    }
+    
+    .hero h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(32px, 6vw, 56px);
+      font-weight: 900; line-height: 1.2; margin-bottom: 20px;
+      background: linear-gradient(135deg, #fff 0%, #7c3aed 50%, #00d4ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero p {
+      font-size: 18px; color: rgba(255,255,255,0.7);
+      max-width: 600px; margin: 0 auto 30px; line-height: 1.6;
+    }
+    
+    .builder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .builder-card {
+      background: linear-gradient(145deg, rgba(124,58,237,0.1) 0%, rgba(10,10,30,0.9) 100%);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 20px;
+      padding: 30px;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    
+    .builder-card:hover {
+      transform: translateY(-10px);
+      border-color: #7c3aed;
+      box-shadow: 0 20px 40px rgba(124,58,237,0.3);
+    }
+    
+    .builder-icon {
+      width: 70px; height: 70px;
+      background: linear-gradient(135deg, #7c3aed, #00d4ff);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; margin-bottom: 20px;
+    }
+    
+    .builder-card h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    
+    .builder-card p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.5;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 15px;
+    }
+    
+    .badge.free { background: rgba(29,158,117,0.2); color: #1D9E75; }
+    .badge.pro { background: rgba(245,158,11,0.2); color: #f59e0b; }
+    
+    footer {
+      position: relative; z-index: 10;
+      border-top: 1px solid rgba(124,58,237,0.2);
+      background: rgba(10,10,26,0.8);
+      padding: 40px; text-align: center;
+      margin-top: 80px;
+    }
+    
+    footer p { color: rgba(255,255,255,0.5); font-size: 14px; }
+    footer a { color: #7c3aed; text-decoration: none; }
+    
+    @media (max-width: 768px) {
+      header { flex-direction: column; gap: 20px; padding: 20px; }
+      nav a { margin: 0 10px; }
+      .hero { padding: 60px 20px 40px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="particles" id="particles"></div>
+  
+  <header>
+    <div class="logo">SEEKHO<span>WITHRUA</span></div>
+    <nav>
+      <a href="https://seekhowithrua.com">Home</a>
+      <a href="https://app.seekhowithrua.com/mnemonic-system">Learn</a>
+      <a href="https://gaming.seekhowithrua.com">Gaming Lab</a>
+      <a href="https://animationlab.seekhowithrua.com">Animation Lab</a>
+    </nav>
+    <div id="userSection" class="user-section">
+      <!-- Auth UI injected by auth.js -->
+    </div>
+  </header>
+  
+  <section class="hero">
+    <h1>App Builder Lab</h1>
+    <p>Build mobile and web applications with modern tools. From no-code solutions to React Native development.</p>
+  </section>
+  
+  <section class="builder-grid">
+    <div class="builder-card" onclick="openBuilder('react-native')">
+      <div class="builder-icon">⚛️</div>
+      <h3>React Native Builder</h3>
+      <p>Build cross-platform mobile apps with React Native. Hot reload, component library, and Expo integration.</p>
+      <span class="badge free">Free</span>
+    </div>
+    
+    <div class="builder-card" onclick="openBuilder('flutter')">
+      <div class="builder-icon">🦋</div>
+      <h3>Flutter Studio</h3>
+      <p>Create beautiful native apps with Flutter. Dart playground, widget inspector, and device preview.</p>
+      <span class="badge free">Free</span>
+    </div>
+    
+    <div class="builder-card" onclick="openBuilder('nocode')">
+      <div class="builder-icon">🧩</div>
+      <h3>No-Code Builder</h3>
+      <p>Drag and drop app builder for non-developers. Templates, preview, and one-click deploy.</p>
+      <span class="badge pro">Pro</span>
+    </div>
+    
+    <div class="builder-card" onclick="openBuilder('pwa')">
+      <div class="builder-icon">📱</div>
+      <h3>PWA Generator</h3>
+      <p>Convert websites to Progressive Web Apps. Service worker generator, manifest builder, and offline testing.</p>
+      <span class="badge free">Free</span>
+    </div>
+  </section>
+  
+  <footer>
+    <p>Part of <a href="https://seekhowithrua.com">SeekhoWithRua</a> — India's unique learning platform. | <a href="https://app.seekhowithrua.com">Main App</a></p>
+  </footer>
+
+  <script>
+    // Particles
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 50; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 20 + 's';
+      particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+      particlesContainer.appendChild(particle);
+    }
+
+    // Builder access with auth check
+    function openBuilder(builderType) {
+      if (typeof appBuilderAuth !== 'undefined' && appBuilderAuth.checkAuth()) {
+        // Open builder tool
+        console.log('Opening builder:', builderType);
+        alert(builderType + ' builder would open here!');
+      } else {
+        if (typeof appBuilderAuth !== 'undefined') {
+          appBuilderAuth.showLoginRequiredModal('Please login to access the ' + builderType + ' builder!');
+        } else {
+          window.location.href = 'https://app.seekhowithrua.com/login?redirect=' + encodeURIComponent(window.location.href);
+        }
+      }
+    }
+  </script>
+</body>
+</html>

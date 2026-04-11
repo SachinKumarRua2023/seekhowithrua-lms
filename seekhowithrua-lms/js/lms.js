@@ -396,6 +396,7 @@ function initIndexPage() {
   createParticles();
   updateOverallProgress();
   renderCourseGrid();
+  updateAuthUI(); // Add login button to header
 
   // Filter buttons - completely isolate each button click
   document.querySelectorAll('.filter-btn').forEach((btn, index, allBtns) => {
