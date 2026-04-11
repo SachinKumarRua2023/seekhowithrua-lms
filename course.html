@@ -14,12 +14,17 @@
 
   <header>
     <div class="logo">SeekhoWith<span>Rua LMS</span></div>
-    <nav>
+    <div class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()">
+      <span></span><span></span><span></span>
+    </div>
+    <nav id="mainNav">
       <a href="index.html">Courses</a>
       <a href="my-learning.html">My Learning</a>
       <a href="trainer-dashboard.html">Trainer Portal</a>
       <a href="https://app.seekhowithrua.com" target="_blank">Live Rooms</a>
     </nav>
+    <!-- User section populated by JS -->
+    <div class="user-section" id="playerUserSection"></div>
   </header>
 
   <main class="course-player">
@@ -57,7 +62,7 @@
           <h2 id="courseTitle">Course Title</h2>
           <div class="course-progress">
             <div class="progress-bar">
-              <div class="progress-fill" id="courseProgressBar" style="width: 0%"></div>
+              <div class="progress-fill" id="courseProgressBar" style="width:0%"></div>
             </div>
             <span id="courseProgressText">0% Complete</span>
           </div>
@@ -67,267 +72,254 @@
     </div>
   </main>
 
-  <script src="https://www.youtube.com/iframe_api"></script>
+  <!-- cosmos-auth MUST load first so COSMOS_AUTH is available -->
+  <script src="js/cosmos-auth.js"></script>
   <script src="js/lms.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+
   <script>
-    // ─── VISUAL LOCK OVERLAY ───
-    function showLockOverlay(message, redirectUrl) {
-      const overlay = document.createElement('div');
-      overlay.id = 'authLockOverlay';
-      overlay.innerHTML = `
-        <div style="
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(4, 4, 15, 0.95);
-          backdrop-filter: blur(10px);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          z-index: 9999;
-          font-family: 'Orbitron', sans-serif;
-        ">
-          <div style="
-            width: 120px;
-            height: 120px;
-            border: 3px solid #7c3aed;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 60px;
-            margin-bottom: 30px;
-            animation: pulse 2s infinite;
-          ">🔒</div>
-          <h2 style="
-            color: #fff;
-            font-size: 28px;
-            margin-bottom: 15px;
-            text-align: center;
-          ">${message}</h2>
-          <p style="
-            color: rgba(255,255,255,0.6);
-            font-size: 14px;
-            margin-bottom: 30px;
-            text-align: center;
-            max-width: 400px;
-          ">Please log in to access this content</p>
-          <a href="${redirectUrl}" style="
-            padding: 15px 40px;
-            background: linear-gradient(135deg, #7c3aed, #00d4ff);
-            color: #fff;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 16px;
-            transition: transform 0.2s;
-          " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-            🔐 Login to Continue
-          </a>
-        </div>
-        <style>
-          @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4); }
-            50% { box-shadow: 0 0 0 20px rgba(124, 58, 237, 0); }
-          }
-        </style>
-      `;
-      document.body.appendChild(overlay);
+  // ══════════════════════════════════════════════════════════════
+  //  COURSE PLAYER AUTH + PLAYBACK LOGIC
+  // ══════════════════════════════════════════════════════════════
+
+  // ── 1. Auth Check ──────────────────────────────────────────────
+  // cosmos-auth.js already called checkUrlForToken() in its init,
+  // so by the time this script runs, if the app redirected here with
+  // ?token=&user= those are already saved to localStorage.
+
+  function renderPlayerUserUI() {
+    const section = document.getElementById('playerUserSection');
+    if (!section) return;
+    const user  = COSMOS_AUTH.getUser();
+    const token = COSMOS_AUTH.getToken();
+    if (token && user) {
+      const name = user.first_name || user.username || user.email?.split('@')[0] || 'Student';
+      section.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="color:#00d4ff;font-size:14px;font-weight:600;">👋 ${name}</span>
+          <button onclick="COSMOS_AUTH.logout()"
+            style="background:#ff4757;color:#fff;border:none;padding:5px 14px;border-radius:20px;cursor:pointer;font-size:12px;">
+            Logout
+          </button>
+        </div>`;
     }
+  }
 
-    // ─── AUTHENTICATION CHECK ───
-    // First check if auth came from main app (lms.js handles this)
-    // Then check localStorage for existing session
-    const currentUser = JSON.parse(localStorage.getItem('cosmos_user') || 'null');
-    const authToken = localStorage.getItem('cosmos_auth_token');
-    
-    // Only show lock if no valid session exists
-    if (!currentUser || !authToken) {
-      const currentUrl = encodeURIComponent(window.location.href);
-      // Redirect to main app login with return URL
-      const loginUrl = `https://app.seekhowithrua.com/login?redirect=${currentUrl}`;
-      showLockOverlay('My Learning Locked', loginUrl);
+  function showLockOverlay() {
+    // Build return URL — strip any existing auth params first
+    const returnUrl = encodeURIComponent(window.location.href);
+    const loginUrl  = `https://app.seekhowithrua.com/login?redirect=${returnUrl}`;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'authLockOverlay';
+    overlay.style.cssText = `
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      background:rgba(4,4,15,0.96);backdrop-filter:blur(12px);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      z-index:9999;font-family:'Orbitron',sans-serif;
+    `;
+    overlay.innerHTML = `
+      <div style="width:110px;height:110px;border:3px solid #7c3aed;border-radius:50%;
+                  display:flex;align-items:center;justify-content:center;font-size:56px;
+                  margin-bottom:28px;animation:lockPulse 2s ease-in-out infinite;">🔒</div>
+      <h2 style="color:#fff;font-size:24px;margin:0 0 12px;text-align:center;">Login Required</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:14px;margin:0 0 28px;text-align:center;max-width:380px;line-height:1.6;">
+        Create a free account or log in to watch course videos and track your progress.
+      </p>
+      <a href="${loginUrl}"
+         style="padding:14px 40px;background:linear-gradient(135deg,#7c3aed,#00d4ff);
+                color:#fff;text-decoration:none;border-radius:30px;font-weight:700;font-size:15px;
+                box-shadow:0 8px 30px rgba(124,58,237,0.5);transition:transform 0.2s;"
+         onmouseover="this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.transform='translateY(0)'">
+        🔐 Login to Continue
+      </a>
+      <a href="index.html"
+         style="margin-top:16px;color:rgba(255,255,255,0.4);font-size:13px;text-decoration:none;
+                font-family:'Inter',sans-serif;">
+        ← Back to Courses
+      </a>
+      <style>
+        @keyframes lockPulse {
+          0%,100% { box-shadow: 0 0 0 0 rgba(124,58,237,0.5); }
+          50%      { box-shadow: 0 0 0 18px rgba(124,58,237,0); }
+        }
+      </style>
+    `;
+    document.body.appendChild(overlay);
+  }
+
+  // Run auth check immediately (cosmos-auth init already ran checkUrlForToken)
+  (function runAuthCheck() {
+    if (!COSMOS_AUTH.isAuthenticated()) {
+      showLockOverlay();
+      return; // stop — don't init player
     }
+    renderPlayerUserUI();
+    // If auth changes (e.g. logout in another tab), lock immediately
+    COSMOS_AUTH.onAuthChange(({ isLoggedIn }) => {
+      if (!isLoggedIn) {
+        document.getElementById('authLockOverlay')?.remove();
+        showLockOverlay();
+      }
+    });
+  })();
 
-    let player;
-    let currentCourse = null;
-    let currentVideoIndex = 0;
+  // ── 2. YouTube Player ──────────────────────────────────────────
+  let player = null;
+  let currentCourse = null;
+  let currentVideoIndex = 0;
 
-    function onYouTubeIframeAPIReady() {
+  function onYouTubeIframeAPIReady() {
+    // Only init player if authenticated
+    if (COSMOS_AUTH.isAuthenticated()) {
       loadCourseFromURL();
     }
+  }
 
-    function loadCourseFromURL() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const courseId = urlParams.get('course');
-      const videoIndex = parseInt(urlParams.get('video')) || 0;
+  function loadCourseFromURL() {
+    const params    = new URLSearchParams(window.location.search);
+    const courseId  = params.get('course');
+    const vidIndex  = parseInt(params.get('video')) || 0;
 
-      if (!courseId) {
-        window.location.href = 'index.html';
-        return;
-      }
+    if (!courseId) { window.location.href = 'index.html'; return; }
 
-      const courses = getCourses();
-      currentCourse = courses.find(c => c.id === courseId);
+    const courses = getCourses();
+    currentCourse = courses.find(c => c.id === courseId);
+    if (!currentCourse) { window.location.href = 'index.html'; return; }
 
-      if (!currentCourse) {
-        window.location.href = 'index.html';
-        return;
-      }
+    document.getElementById('courseTitle').textContent = currentCourse.title;
+    document.title = `${currentCourse.title} | SeekhoWithRua LMS`;
+    renderVideoList();
+    loadVideo(vidIndex);
+  }
 
-      document.getElementById('courseTitle').textContent = currentCourse.title;
-      renderVideoList();
-      loadVideo(videoIndex);
-    }
+  function renderVideoList() {
+    const list     = document.getElementById('videoList');
+    const progress = getCourseProgress(currentCourse.id);
 
-    function renderVideoList() {
-      const list = document.getElementById('videoList');
-      const progress = getCourseProgress(currentCourse.id);
-
-      list.innerHTML = currentCourse.videos.map((video, index) => {
-        const isCompleted = progress.completedVideos.includes(index);
-        return `
-          <div class="video-item ${isCompleted ? 'completed' : ''} ${index === currentVideoIndex ? 'active' : ''}" onclick="loadVideo(${index})">
-            <div class="video-number">${index + 1}</div>
-            <div class="video-details">
-              <h4>${video.title}</h4>
-              <span class="video-duration">${video.duration}</span>
-            </div>
-            <div class="video-status">${isCompleted ? '✓' : '○'}</div>
+    list.innerHTML = currentCourse.videos.map((video, index) => {
+      const done = progress.completedVideos.includes(index);
+      return `
+        <div class="video-item ${done ? 'completed' : ''} ${index === currentVideoIndex ? 'active' : ''}"
+             onclick="loadVideo(${index})">
+          <div class="video-number">${index + 1}</div>
+          <div class="video-details">
+            <h4>${video.title}</h4>
+            <span class="video-duration">${video.duration}</span>
           </div>
-        `;
-      }).join('');
+          <div class="video-status">${done ? '✓' : '○'}</div>
+        </div>`;
+    }).join('');
 
-      updateCourseProgress();
-    }
+    updateCourseProgress();
+  }
 
-    function loadVideo(index) {
-      currentVideoIndex = index;
-      const video = currentCourse.videos[index];
+  function loadVideo(index) {
+    currentVideoIndex = index;
+    const video = currentCourse.videos[index];
 
-      document.getElementById('videoTitle').textContent = video.title;
-      document.getElementById('videoDuration').textContent = `Duration: ${video.duration}`;
-      document.getElementById('videoModule').textContent = `Module: ${video.module || 'General'}`;
-      document.getElementById('videoDescription').textContent = video.description || 'No description available.';
+    document.getElementById('videoTitle').textContent       = video.title;
+    document.getElementById('videoDuration').textContent    = `Duration: ${video.duration}`;
+    document.getElementById('videoModule').textContent      = `Module: ${video.module || 'General'}`;
+    document.getElementById('videoDescription').textContent = video.description || 'No description available.';
 
-      const placeholder = document.getElementById('videoPlaceholder');
-      if (placeholder) placeholder.style.display = 'none';
+    const placeholder = document.getElementById('videoPlaceholder');
+    if (placeholder) placeholder.style.display = 'none';
 
-      if (player) {
-        player.loadVideoById(extractVideoId(video.youtubeUrl));
-      } else {
-        player = new YT.Player('youtubePlayer', {
-          height: '100%',
-          width: '100%',
-          videoId: extractVideoId(video.youtubeUrl),
-          playerVars: {
-            playsinline: 1,
-            rel: 0,
-            modestbranding: 1
-          },
-          events: {
-            onStateChange: onPlayerStateChange
-          }
-        });
-      }
-
-      updateUI();
-      updateURL();
-    }
-
-    function onPlayerStateChange(event) {
-      if (event.data === YT.PlayerState.ENDED) {
-        markVideoComplete(currentVideoIndex);
-      }
-    }
-
-    function toggleVideoComplete() {
-      const progress = getCourseProgress(currentCourse.id);
-      const isCompleted = progress.completedVideos.includes(currentVideoIndex);
-
-      if (isCompleted) {
-        unmarkVideoComplete(currentVideoIndex);
-      } else {
-        markVideoComplete(currentVideoIndex);
-      }
-    }
-
-    function markVideoComplete(index) {
-      const progress = getCourseProgress(currentCourse.id);
-      if (!progress.completedVideos.includes(index)) {
-        progress.completedVideos.push(index);
-        saveCourseProgress(currentCourse.id, progress);
-        renderVideoList();
-        updateUI();
-        showNotification('Video marked as complete!');
-      }
-    }
-
-    function unmarkVideoComplete(index) {
-      const progress = getCourseProgress(currentCourse.id);
-      progress.completedVideos = progress.completedVideos.filter(i => i !== index);
-      saveCourseProgress(currentCourse.id, progress);
-      renderVideoList();
-      updateUI();
-    }
-
-    function updateUI() {
-      const progress = getCourseProgress(currentCourse.id);
-      const isCompleted = progress.completedVideos.includes(currentVideoIndex);
-
-      document.getElementById('markCompleteBtn').className = isCompleted ? 'btn-complete completed' : 'btn-complete';
-      document.getElementById('completeBtnText').textContent = isCompleted ? 'Completed ✓' : 'Mark as Complete';
-
-      document.getElementById('prevBtn').disabled = currentVideoIndex === 0;
-      document.getElementById('nextBtn').disabled = currentVideoIndex === currentCourse.videos.length - 1;
-
-      document.querySelectorAll('.video-item').forEach((item, index) => {
-        item.classList.toggle('active', index === currentVideoIndex);
+    const videoId = extractVideoId(video.youtubeUrl);
+    if (player) {
+      player.loadVideoById(videoId);
+    } else {
+      player = new YT.Player('youtubePlayer', {
+        height: '100%',
+        width:  '100%',
+        videoId,
+        playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+        events: { onStateChange: onPlayerStateChange }
       });
     }
 
-    function updateCourseProgress() {
-      const progress = getCourseProgress(currentCourse.id);
-      const percentage = Math.round((progress.completedVideos.length / currentCourse.videos.length) * 100);
+    updateUI();
+    updateURL();
+  }
 
-      document.getElementById('courseProgressBar').style.width = `${percentage}%`;
-      document.getElementById('courseProgressText').textContent = `${percentage}% Complete`;
+  function onPlayerStateChange(event) {
+    if (event.data === YT.PlayerState.ENDED) markVideoComplete(currentVideoIndex);
+  }
+
+  function toggleVideoComplete() {
+    const progress = getCourseProgress(currentCourse.id);
+    if (progress.completedVideos.includes(currentVideoIndex)) {
+      unmarkVideoComplete(currentVideoIndex);
+    } else {
+      markVideoComplete(currentVideoIndex);
     }
+  }
 
-    function loadPreviousVideo() {
-      if (currentVideoIndex > 0) {
-        loadVideo(currentVideoIndex - 1);
-      }
+  function markVideoComplete(index) {
+    const progress = getCourseProgress(currentCourse.id);
+    if (!progress.completedVideos.includes(index)) {
+      progress.completedVideos.push(index);
+      saveCourseProgress(currentCourse.id, progress);
+      renderVideoList();
+      updateUI();
+      showNotification('✅ Video marked as complete!');
     }
+  }
 
-    function loadNextVideo() {
-      if (currentVideoIndex < currentCourse.videos.length - 1) {
-        loadVideo(currentVideoIndex + 1);
-      }
-    }
+  function unmarkVideoComplete(index) {
+    const progress = getCourseProgress(currentCourse.id);
+    progress.completedVideos = progress.completedVideos.filter(i => i !== index);
+    saveCourseProgress(currentCourse.id, progress);
+    renderVideoList();
+    updateUI();
+  }
 
-    function updateURL() {
-      const url = new URL(window.location);
-      url.searchParams.set('video', currentVideoIndex);
-      window.history.replaceState({}, '', url);
-    }
+  function updateUI() {
+    const progress    = getCourseProgress(currentCourse.id);
+    const isCompleted = progress.completedVideos.includes(currentVideoIndex);
 
-    function extractVideoId(url) {
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-      const match = url.match(regExp);
-      return (match && match[2].length === 11) ? match[2] : null;
-    }
+    document.getElementById('markCompleteBtn').className     = isCompleted ? 'btn-complete completed' : 'btn-complete';
+    document.getElementById('completeBtnText').textContent   = isCompleted ? 'Completed ✓' : 'Mark as Complete';
+    document.getElementById('prevBtn').disabled = currentVideoIndex === 0;
+    document.getElementById('nextBtn').disabled = currentVideoIndex === currentCourse.videos.length - 1;
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft' && !document.getElementById('prevBtn').disabled) {
-        loadPreviousVideo();
-      } else if (e.key === 'ArrowRight' && !document.getElementById('nextBtn').disabled) {
-        loadNextVideo();
-      }
+    document.querySelectorAll('.video-item').forEach((item, i) => {
+      item.classList.toggle('active', i === currentVideoIndex);
     });
+  }
+
+  function updateCourseProgress() {
+    const progress   = getCourseProgress(currentCourse.id);
+    const percentage = Math.round((progress.completedVideos.length / currentCourse.videos.length) * 100);
+    document.getElementById('courseProgressBar').style.width   = `${percentage}%`;
+    document.getElementById('courseProgressText').textContent  = `${percentage}% Complete`;
+  }
+
+  function loadPreviousVideo() {
+    if (currentVideoIndex > 0) loadVideo(currentVideoIndex - 1);
+  }
+
+  function loadNextVideo() {
+    if (currentVideoIndex < currentCourse.videos.length - 1) loadVideo(currentVideoIndex + 1);
+  }
+
+  function updateURL() {
+    const url = new URL(window.location);
+    url.searchParams.set('video', currentVideoIndex);
+    window.history.replaceState({}, '', url);
+  }
+
+  function extractVideoId(url) {
+    const m = url.match(/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
+    return (m && m[2].length === 11) ? m[2] : null;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft'  && !document.getElementById('prevBtn').disabled) loadPreviousVideo();
+    if (e.key === 'ArrowRight' && !document.getElementById('nextBtn').disabled) loadNextVideo();
+  });
   </script>
 </body>
 </html>

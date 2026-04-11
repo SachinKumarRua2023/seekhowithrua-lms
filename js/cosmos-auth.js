@@ -1,91 +1,156 @@
 /**
- * Shared Cross-Domain Authentication Management
- * Used by: app.seekhowithrua.com, lms.seekhowithrua.com, gaming.seekhowithrua.com, animation.seekhowithrua.com
+ * COSMOS AUTH - Cross-Domain Authentication
+ * Domains: app.seekhowithrua.com (auth source) ↔ lms.seekhowithrua.com (consumer)
+ *
+ * FLOW:
+ *   1. LMS page loads → checks localStorage for token
+ *   2. Not logged in → redirect to app.seekhowithrua.com/login?redirect=<lms_url>
+ *   3. App logs user in → redirects back to LMS with ?token=XXX&user=<json>
+ *   4. LMS reads token from URL → saves to localStorage → strips URL params
+ *   5. Done. User is now authenticated on LMS domain.
+ *
+ *   If user is ALREADY logged in on app.seekhowithrua.com (has token in its localStorage)
+ *   the app's login page should auto-redirect back to LMS with the token immediately.
+ *   (Implement that check on the App side — see comment in redirectToLogin below.)
  */
 
 const COSMOS_AUTH = {
-  TOKEN_KEY: 'cosmos_token',  // MUST MATCH App.jsx export
-  USER_KEY: 'cosmos_user',
-  API_BASE_URL: 'https://api.seekhowithrua.com',
-  MAIN_APP_URL: 'https://app.seekhowithrua.com',
-  
-  // Get stored token
+  TOKEN_KEY: 'cosmos_token',
+  USER_KEY:  'cosmos_user',
+
+  API_BASE_URL:  'https://api.seekhowithrua.com',
+  MAIN_APP_URL:  'https://app.seekhowithrua.com',
+
+  /* ─── READ ─────────────────────────────────────────────── */
+
   getToken() {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return localStorage.getItem(this.TOKEN_KEY) || null;
   },
 
-  // Get stored user data
   getUser() {
-    const user = localStorage.getItem(this.USER_KEY);
-    return user ? JSON.parse(user) : null;
+    try {
+      const raw = localStorage.getItem(this.USER_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
   },
 
-  // Check if user is authenticated
   isAuthenticated() {
-    return !!this.getToken() && !!this.getUser();
+    return !!(this.getToken() && this.getUser());
   },
 
-  // Save login data across domains
+  /* ─── WRITE ─────────────────────────────────────────────── */
+
   saveAuth(token, user) {
     localStorage.setItem(this.TOKEN_KEY, token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-    
-    // Notify other tabs/windows about the login
-    window.dispatchEvent(new CustomEvent('cosmosAuthChanged', { 
-      detail: { isLoggedIn: true, user } 
+    window.dispatchEvent(new CustomEvent('cosmosAuthChanged', {
+      detail: { isLoggedIn: true, user }
     }));
   },
 
-  // Clear auth data (logout)
   clearAuth() {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
-    
-    // Notify other tabs/windows about the logout
-    window.dispatchEvent(new CustomEvent('cosmosAuthChanged', { 
-      detail: { isLoggedIn: false } 
+    window.dispatchEvent(new CustomEvent('cosmosAuthChanged', {
+      detail: { isLoggedIn: false }
     }));
   },
 
-  // Logout from backend and clear all data
+  /* ─── URL TOKEN HANDSHAKE ────────────────────────────────── */
+  /**
+   * Called on every page load.
+   * If the app redirected back with ?token=&user= in the URL,
+   * we capture them, persist to localStorage, and clean the URL.
+   * Returns true if a token was found and saved.
+   */
+  checkUrlForToken() {
+    const params = new URLSearchParams(window.location.search);
+    const token    = params.get('token');
+    const userJson = params.get('user');
+
+    if (token && userJson) {
+      try {
+        const user = JSON.parse(decodeURIComponent(userJson));
+        this.saveAuth(token, user);
+      } catch (e) {
+        console.warn('[COSMOS_AUTH] Failed to parse user from URL:', e);
+      }
+      // Strip auth params from URL so they don't linger
+      params.delete('token');
+      params.delete('user');
+      const cleanSearch = params.toString();
+      const cleanUrl = window.location.pathname + (cleanSearch ? '?' + cleanSearch : '');
+      window.history.replaceState({}, document.title, cleanUrl);
+      return true;
+    }
+    return false;
+  },
+
+  /* ─── NAVIGATION HELPERS ────────────────────────────────── */
+
+  /**
+   * Send user to app login.
+   * The app's /login page should:
+   *   a) If already logged in → immediately redirect to `redirect` param with token appended
+   *   b) If not logged in → show login form, then redirect on success
+   */
+  redirectToLogin(returnUrl) {
+    const target = returnUrl || window.location.href;
+    window.location.href =
+      `${this.MAIN_APP_URL}/login?redirect=${encodeURIComponent(target)}`;
+  },
+
+  /* ─── LOGOUT ────────────────────────────────────────────── */
+
   async logout() {
     const token = this.getToken();
     if (token) {
       try {
-        // Add 5-second timeout to prevent hanging
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-        
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 5000);
         await fetch(`${this.API_BASE_URL}/api/auth/logout/`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Authorization': `Token ${token}`, 'Content-Type': 'application/json' },
           credentials: 'include',
-          signal: controller.signal,
+          signal: ctrl.signal,
         });
-        clearTimeout(timeoutId);
-      } catch (err) {
-        console.error('Logout API error:', err);
-        // Continue logout even if API call fails
-      }
+      } catch { /* ignore - we log out locally regardless */ }
     }
-    
-    // Clear local auth
     this.clearAuth();
-    
-    // Redirect to main app login
-    window.location.href = `${this.MAIN_APP_URL}/login`;
+    // Stay on LMS after logout (just refresh to update UI)
+    window.location.reload();
   },
 
-  // Redirect to login on main app with return URL
-  redirectToLogin(returnUrl = window.location.href) {
-    const encodedUrl = encodeURIComponent(returnUrl);
-    window.location.href = `${this.MAIN_APP_URL}/login?redirect=${encodedUrl}`;
+  /* ─── VERIFY TOKEN ──────────────────────────────────────── */
+
+  async verifyToken() {
+    const token = this.getToken();
+    if (!token) return false;
+    try {
+      const ctrl = new AbortController();
+      setTimeout(() => ctrl.abort(), 5000);
+      const res = await fetch(`${this.API_BASE_URL}/api/auth/user/`, {
+        headers: { 'Authorization': `Token ${token}`, 'Content-Type': 'application/json' },
+        credentials: 'include',
+        signal: ctrl.signal,
+      });
+      if (res.ok) {
+        const userData = await res.json();
+        this.saveAuth(token, userData);
+        return true;
+      }
+      if (res.status === 401) {
+        this.clearAuth();
+        return false;
+      }
+    } catch { /* network error - assume token still valid offline */ }
+    return true; // optimistic if network fails
   },
 
-  // Get auth headers for API calls
+  /* ─── AUTH HEADERS ──────────────────────────────────────── */
+
   getAuthHeaders() {
     const token = this.getToken();
     return {
@@ -94,109 +159,42 @@ const COSMOS_AUTH = {
     };
   },
 
-  // Verify token is still valid with backend
-  async verifyToken() {
-    const token = this.getToken();
-    if (!token) return false;
-    
-    try {
-      // Add 5-second timeout to prevent hanging
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      const response = await fetch(`${this.API_BASE_URL}/api/auth/user/`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-        credentials: 'include',
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        const userData = await response.json();
-        this.saveAuth(token, userData);
-        return true;
-      } else if (response.status === 401) {
-        // Token is invalid, clear auth
-        this.clearAuth();
-        return false;
-      }
-    } catch (err) {
-      console.error('Token verification error:', err);
-    }
-    
-    return false;
-  },
+  /* ─── INIT ──────────────────────────────────────────────── */
 
-  // Initialize auth on page load
   async init() {
-    // Prevent multiple init calls (idempotent)
     if (this._initialized) return;
     this._initialized = true;
-    
-    // Check URL for token from redirect (e.g., after login from main app)
+
+    // 1. Grab token from URL if app redirected back here
     this.checkUrlForToken();
-    
-    // Verify stored token is still valid
-    // NOTE: Apps handle their own redirect logic - we just verify here
+
+    // 2. Silently verify stored token (non-blocking UI)
     if (this.isAuthenticated()) {
-      const isValid = await this.verifyToken();
-      if (!isValid) {
-        this.clearAuth();
-        // Don't auto-redirect - let the app decide
-      }
+      this.verifyToken(); // fire and forget - don't block page render
     }
-    
+
     // Listen for auth changes in other tabs
     window.addEventListener('storage', (e) => {
       if (e.key === this.TOKEN_KEY || e.key === this.USER_KEY) {
-        window.dispatchEvent(new CustomEvent('cosmosAuthChanged', { 
-          detail: { isLoggedIn: this.isAuthenticated() } 
+        window.dispatchEvent(new CustomEvent('cosmosAuthChanged', {
+          detail: { isLoggedIn: this.isAuthenticated() }
         }));
       }
     });
   },
 
-  // Check if token is present in URL query params (from redirect)
-  checkUrlForToken() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    const userData = urlParams.get('user');
-    
-    if (token && userData) {
-      try {
-        const user = JSON.parse(decodeURIComponent(userData));
-        this.saveAuth(token, user);
-        
-        // Clean URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-        return true;
-      } catch (err) {
-        console.error('Failed to parse user data from URL:', err);
-      }
-    }
-    return false;
-  },
-
-  // Check if current page is login page
-  isLoginPage() {
-    const path = window.location.pathname;
-    return path.includes('/login') || path.includes('/auth');
-  },
-
-  // Listen for auth changes
   onAuthChange(callback) {
-    window.addEventListener('cosmosAuthChanged', (e) => {
-      callback(e.detail);
-    });
+    window.addEventListener('cosmosAuthChanged', (e) => callback(e.detail));
   },
 };
 
-// NOTE: Apps must call COSMOS_AUTH.init() manually after processing URL tokens
-// This prevents race conditions between token processing and auth checks
+// Auto-initialize on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => COSMOS_AUTH.init());
+} else {
+  COSMOS_AUTH.init();
+}
 
-// Export for use in modules
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = COSMOS_AUTH;
 }
