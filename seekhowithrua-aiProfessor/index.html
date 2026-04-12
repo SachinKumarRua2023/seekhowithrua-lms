@@ -662,10 +662,12 @@
 </div>
 
 <script>
-// API Configuration - Vercel Serverless Function
+// API Configuration
 const API_BASE_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:3000/api' 
-  : '/api'; // Same domain for Vercel deployment
+  : window.location.pathname.includes('seekhowithrua-aiProfessor') 
+    ? '/seekhowithrua-aiProfessor/api'
+    : '/api';
 
 let currentSubject = 'general';
 let chatHistory = [];
