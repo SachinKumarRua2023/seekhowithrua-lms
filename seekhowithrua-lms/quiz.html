@@ -19,6 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/lms.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/cosmos-auth.js"></script>
   
   <!-- JSON-LD Structured Data for SEO -->
   <script type="application/ld+json">
@@ -1928,8 +1929,25 @@
       }
     }
 
+    // Initialize COSMOS auth for optional user prefill
+    COSMOS_AUTH.init();
+    
+    // Pre-fill user info if logged in (with delay for URL token processing)
+    function prefillUserInfo() {
+      setTimeout(() => {
+        const user = COSMOS_AUTH.getUser();
+        if (user) {
+          const nameField = document.getElementById('userName');
+          const emailField = document.getElementById('userEmail');
+          if (nameField && user.first_name) nameField.value = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+          if (emailField && user.email) emailField.value = user.email;
+        }
+      }, 100);
+    }
+    
     // Initialize
     createParticles();
+    prefillUserInfo();
   </script>
 </body>
 </html>

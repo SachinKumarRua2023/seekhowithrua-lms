@@ -73,6 +73,7 @@
   </main>
 
   <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="js/cosmos-auth.js"></script>
   <script src="js/lms.js"></script>
   <script>
     // ─── VISUAL LOCK OVERLAY ───
@@ -144,17 +145,22 @@
     }
 
     // ─── AUTHENTICATION CHECK ───
-    // First check if auth came from main app (lms.js handles this)
-    // Then check localStorage for existing session
-    const currentUser = JSON.parse(localStorage.getItem('cosmos_user') || 'null');
-    const authToken = localStorage.getItem('cosmos_token');
+    // Initialize COSMOS auth system first (handles URL token from main app)
+    COSMOS_AUTH.init();
     
-    // Only show lock if no valid session exists
-    if (!currentUser || !authToken) {
-      const currentUrl = encodeURIComponent(window.location.href);
-      // Redirect to main app login with return URL
-      const loginUrl = `https://app.seekhowithrua.com/login?redirect=${currentUrl}`;
-      showLockOverlay('My Learning Locked', loginUrl);
+    // Check auth after brief delay to allow URL token processing
+    function checkAuthAndLoadCourse() {
+      const currentUser = COSMOS_AUTH.getUser();
+      const authToken = COSMOS_AUTH.getToken();
+      
+      // Only show lock if no valid session exists
+      if (!currentUser || !authToken) {
+        const currentUrl = encodeURIComponent(window.location.href);
+        const loginUrl = `https://app.seekhowithrua.com/login?redirect=${currentUrl}`;
+        showLockOverlay('Course Access Locked', loginUrl);
+        return false;
+      }
+      return true;
     }
 
     let player;
@@ -162,7 +168,12 @@
     let currentVideoIndex = 0;
 
     function onYouTubeIframeAPIReady() {
-      loadCourseFromURL();
+      // Check auth before loading course
+      setTimeout(() => {
+        if (checkAuthAndLoadCourse()) {
+          loadCourseFromURL();
+        }
+      }, 100);
     }
 
     function loadCourseFromURL() {

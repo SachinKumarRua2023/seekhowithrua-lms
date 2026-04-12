@@ -410,6 +410,7 @@
     </div>
   </footer>
 
+  <script src="js/cosmos-auth.js"></script>
   <script src="js/lms.js"></script>
   <script>
     // ─── VISUAL LOCK OVERLAY ───
@@ -481,6 +482,9 @@
     }
 
     // ─── TRAINER AUTHENTICATION CHECK ───
+    // Initialize COSMOS auth first
+    COSMOS_AUTH.init();
+    
     // Define approved trainer emails
     const TRAINER_EMAILS = [
       'seekhowithrua@gmail.com',
@@ -488,46 +492,55 @@
       'master@gmail.com'
     ];
     
-    const currentUser = JSON.parse(localStorage.getItem('cosmos_user') || 'null');
-    const authToken = localStorage.getItem('cosmos_auth_token');
-    
-    // Check if user is logged in
-    if (!currentUser || !authToken) {
-      const currentUrl = encodeURIComponent(window.location.href);
-      showLockOverlay('Trainer Portal Locked', `https://app.seekhowithrua.com/login?redirect=${currentUrl}`, 'Please log in to access trainer features');
-    }
-    
-    // Check if user is an approved trainer
-    const userEmail = currentUser?.email?.toLowerCase() || '';
-    const userName = currentUser?.name?.toLowerCase() || '';
-    
-    const isTrainer = currentUser && (
-      TRAINER_EMAILS.includes(userEmail) ||
-      TRAINER_EMAILS.some(email => userEmail.includes(email.split('@')[0])) ||
-      userEmail.includes('sachin') ||
-      userEmail.includes('master') ||
-      userEmail.includes('rua') ||
-      userName.includes('sachin') ||
-      userName.includes('master') ||
-      userName.includes('rua') ||
-      currentUser.role === 'trainer' ||
-      currentUser.isTrainer === true
-    );
-    
-    if (!isTrainer) {
-      // Student trying to access trainer portal
-      showLockOverlay('Access Denied', 'my-learning.html', 'This area is restricted to trainers only', '🚫', '#e74c3c');
+    // Check auth after brief delay to allow URL token processing
+    function checkTrainerAuth() {
+      const currentUser = COSMOS_AUTH.getUser();
+      const authToken = COSMOS_AUTH.getToken();
+      
+      // Check if user is logged in
+      if (!currentUser || !authToken) {
+        const currentUrl = encodeURIComponent(window.location.href);
+        showLockOverlay('Trainer Portal Locked', `https://app.seekhowithrua.com/login?redirect=${currentUrl}`, 'Please log in to access trainer features');
+        return false;
+      }
+      
+      // Check if user is an approved trainer
+      const userEmail = currentUser?.email?.toLowerCase() || '';
+      const userName = currentUser?.name?.toLowerCase() || '';
+      
+      const isTrainer = currentUser && (
+        TRAINER_EMAILS.includes(userEmail) ||
+        TRAINER_EMAILS.some(email => userEmail.includes(email.split('@')[0])) ||
+        userEmail.includes('sachin') ||
+        userEmail.includes('master') ||
+        userEmail.includes('rua') ||
+        userName.includes('sachin') ||
+        userName.includes('master') ||
+        userName.includes('rua') ||
+        currentUser.role === 'trainer' ||
+        currentUser.isTrainer === true
+      );
+      
+      if (!isTrainer) {
+        showLockOverlay('Access Denied', 'my-learning.html', 'This area is restricted to trainers only', '🚫', '#e74c3c');
+        return false;
+      }
+      return true;
     }
 
     let currentEditingCourse = null;
     let tempVideos = [];
 
     document.addEventListener('DOMContentLoaded', () => {
-      loadTrainerStats();
-      loadTrainerCourses();
-
-      document.getElementById('createCourseForm').addEventListener('submit', handleCreateCourse);
-      document.getElementById('addVideoForm').addEventListener('submit', handleAddVideo);
+      // Small delay to ensure COSMOS_AUTH has processed URL tokens
+      setTimeout(() => {
+        if (checkTrainerAuth()) {
+          loadTrainerStats();
+          loadTrainerCourses();
+          document.getElementById('createCourseForm').addEventListener('submit', handleCreateCourse);
+          document.getElementById('addVideoForm').addEventListener('submit', handleAddVideo);
+        }
+      }, 100);
     });
 
     function handleCreateCourse(e) {
