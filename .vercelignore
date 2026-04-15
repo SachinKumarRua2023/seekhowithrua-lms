@@ -1,0 +1,48 @@
+# Ignore Python backend files - we're using client-side AI only
+backend/
+django-react-ml-app/
+seekhowithrua-lms/backend/
+
+# Ignore Python files
+*.py
+requirements.txt
+pyproject.toml
+
+# Ignore virtual environments
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Ignore node_modules
+node_modules/
+
+# Ignore git
+.git/
+.gitignore
+
+# Ignore local env files
+.env
+.env.local
+.env.*.local
+
+# Ignore other project folders not needed for this deployment
+seekhowithrua-aiAgentBuilder/
+seekhowithrua-animation/
+seekhowithrua-appBuilder/
+seekhowithrua-gaming/
+seekhowithrua-mobile/
+seekhowithrua-quizes/
+seekhowithrua-seo/
+seekhowithrua-services/
+seekhowithrua-websiteBuilder/
+Seekhowithrua-discussions/
+
+# Ignore docs
+*.md
+DEPLOYMENT_GUIDE.md
+FINAL_PUSH_COMMANDS.md
+GAMING_LMS_IMPLEMENTATION_SUMMARY.md
+GAMING_LMS_INTEGRATION_PLAN.md
+GITHUB_PUSH_GUIDE.md
+VERCEL_DEPLOY_GUIDE.md
