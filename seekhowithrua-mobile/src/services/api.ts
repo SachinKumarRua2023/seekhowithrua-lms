@@ -1,12 +1,12 @@
 // mobile/src/services/api.ts
-// Single axios instance — same Django backend endpoints as frontend
-// Replaces: whatever fetch/axios setup you had in frontend
+// JWT Auth from app.seekhowithrua.com
+// Replaces: Django token auth with JWT
 
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { TOKEN_KEY } from "../store/authStore";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://api.seekhowithrua.com";
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://app.seekhowithrua.com/api";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -17,12 +17,12 @@ const api = axios.create({
 });
 
 // ─── Request Interceptor ───────────────────────────────────────────────────
-// Automatically attaches token to every request (replaces manual token headers)
+// Automatically attaches JWT to every request
 api.interceptors.request.use(
   async (config) => {
     const token = await SecureStore.getItemAsync(TOKEN_KEY);
     if (token) {
-      config.headers.Authorization = `Token ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -37,6 +37,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Clear stored auth — user will be redirected by navigation guard
       await SecureStore.deleteItemAsync(TOKEN_KEY);
+      await SecureStore.deleteItemAsync("seekho_user");
     }
     return Promise.reject(error);
   }
@@ -44,8 +45,87 @@ api.interceptors.response.use(
 
 // ─── Auth Endpoints ────────────────────────────────────────────────────────
 export const authAPI = {
+  // Login via deep link callback - token received from web
+  verifyToken: (token: string) =>
+    api.get("/auth/verify/", { headers: { Authorization: `Bearer ${token}` } }),
+
+  refreshToken: (refreshToken: string) =>
+    api.post("/auth/refresh/", { refresh: refreshToken }),
+
+  logout: () =>
+    api.post("/auth/logout/"),
+};
+
+// ─── Blockchain / SEEKHO Token Endpoints ────────────────────────────────────
+export const blockchainAPI = {
+  // Get user's SEEKHO token balance
+  getTokenBalance: () =>
+    api.get("/blockchain/balance/"),
+
+  // Get wallet connection status
+  getWalletStatus: () =>
+    api.get("/blockchain/wallet/"),
+
+  // Connect Solana wallet
+  connectWallet: (walletAddress: string, signature: string) =>
+    api.post("/blockchain/wallet/connect/", { wallet_address: walletAddress, signature }),
+
+  // Withdraw tokens to wallet
+  withdrawTokens: (amount: number, walletAddress: string) =>
+    api.post("/blockchain/withdraw/", { amount, wallet_address: walletAddress }),
+
+  // Get earning history
+  getEarningHistory: () =>
+    api.get("/blockchain/earnings/"),
+};
+
+// ─── Voice Room / VCR Endpoints ───────────────────────────────────────────
+export const vcrAPI = {
+  // Get all active panels
+  getPanels: () =>
+    api.get("/vcr/panels/"),
+
+  // Create new panel
+  createPanel: (title: string, description: string) =>
+    api.post("/vcr/panels/", { title, description }),
+
+  // Join panel
+  joinPanel: (panelId: number) =>
+    api.post(`/vcr/panels/${panelId}/join/`),
+
+  // Leave panel
+  leavePanel: (panelId: number) =>
+    api.post(`/vcr/panels/${panelId}/leave/`),
+
+  // Raise hand to speak
+  raiseHand: (panelId: number) =>
+    api.post(`/vcr/panels/${panelId}/raise-hand/`),
+
+  // Lower hand
+  lowerHand: (panelId: number) =>
+    api.post(`/vcr/panels/${panelId}/lower-hand/`),
+
+  // Invite AI co-host
+  inviteAI: (panelId: number) =>
+    api.post(`/vcr/panels/${panelId}/ai-join/`),
+
+  // Mute/unmute self
+  toggleMute: (panelId: number, muted: boolean) =>
+    api.post(`/vcr/panels/${panelId}/mute/`, { muted }),
+
+  // Send message
+  sendMessage: (panelId: number, text: string) =>
+    api.post(`/vcr/panels/${panelId}/messages/`, { text }),
+
+  // End panel (host only)
+  endPanel: (panelId: number) =>
+    api.post(`/vcr/panels/${panelId}/end/`),
+};
+
+// ─── Legacy Auth Endpoints (for compatibility) ─────────────────────────────
+export const legacyAuthAPI = {
   login: (username: string, password: string) =>
-    api.post("/api/auth/login/", { username, password }),
+    api.post("/auth/login/", { username, password }),
 
   signup: (data: {
     username: string;
@@ -53,11 +133,11 @@ export const authAPI = {
     password: string;
     first_name?: string;
     last_name?: string;
-  }) => api.post("/api/auth/register/", data),
+  }) => api.post("/auth/register/", data),
 
-  logout: () => api.post("/api/auth/logout/"),
+  logout: () => api.post("/auth/logout/"),
 
-  getProfile: () => api.get("/api/auth/user/"),
+  getProfile: () => api.get("/auth/user/"),
 };
 
 // ─── ML / CV Endpoints ─────────────────────────────────────────────────────
@@ -123,21 +203,6 @@ export const lmsAPI = {
   startQuiz: (quizId: number) => api.post(`/api/lms/quizzes/${quizId}/start_attempt/`),
   submitQuiz: (quizId: number, answers: object, timeTaken: number) => 
     api.post(`/api/lms/quizzes/${quizId}/submit_attempt/`, { answers, time_taken_seconds: timeTaken }),
-};
-
-// ─── VCR Endpoints ─────────────────────────────────────────────────────────
-export const vcrAPI = {
-  getRooms: () => api.get("/api/vcr/rooms/"),
-  createRoom: (data: object) => api.post("/api/vcr/rooms/", data),
-  joinRoom: (roomId: string) => api.post(`/api/vcr/rooms/${roomId}/join/`),
-  leaveRoom: (roomId: string) => api.post(`/api/vcr/rooms/${roomId}/leave/`),
-  raiseHand: (roomId: string) => api.post(`/api/vcr/rooms/${roomId}/raise_hand/`),
-  lowerHand: (roomId: string) => api.post(`/api/vcr/rooms/${roomId}/lower_hand/`),
-  promotePeer: (roomId: string, peerId: string) => api.post(`/api/vcr/rooms/${roomId}/promote/${peerId}/`),
-  kickPeer: (roomId: string, peerId: string) => api.post(`/api/vcr/rooms/${roomId}/kick/${peerId}/`),
-  // Boost rank feature
-  boostRank: (roomId: string) => api.post(`/api/vcr/rooms/${roomId}/boost_rank/`),
-  getRankStatus: (roomId: string) => api.get(`/api/vcr/rooms/${roomId}/rank_status/`),
 };
 
 export default api;

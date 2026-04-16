@@ -1,11 +1,12 @@
 // mobile/src/navigation/AppNavigator.tsx
+// JWT Auth from app.seekhowithrua.com
 
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuthStore } from "../store/authStore";
 
 // Pages
-import LoginSignupLogout from "../pages/LoginSignupLogout";
+import LoginScreen from "../pages/LoginScreen";
 import MainTabs from "./MainTabs";
 import VCRoom from "../pages/VCRoom";
 
@@ -32,7 +33,7 @@ export default function AppNavigator() {
       {token ? (
         <Stack.Screen name="Main" component={MainTabs} />
       ) : (
-        <Stack.Screen name="Auth" component={LoginSignupLogout} />
+        <Stack.Screen name="Auth" component={LoginScreen} />
       )}
       <Stack.Screen name="VCRoom" component={VCRoom} />
     </Stack.Navigator>
