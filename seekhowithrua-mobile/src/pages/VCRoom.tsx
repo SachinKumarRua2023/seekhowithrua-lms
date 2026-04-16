@@ -1,12 +1,20 @@
 // mobile/src/pages/VCRoom.tsx
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  SEEKHO VC ROOM — Advanced Edition                              ║
+// ║  • Solana SPL token earning (SEEKHO token)                      ║
+// ║  • AI Speaker (Claude + ElevenLabs TTS + Whisper STT)          ║
+// ║  • Auth via app.seekhowithrua.com → deep link → app           ║
+// ║  • Categories: Tech | Philosophy | Spiritual | Business         ║
+// ╚══════════════════════════════════════════════════════════════════╝
+
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, ActivityIndicator, Alert,
+  StyleSheet, ActivityIndicator, Alert, Animated, Vibration, Platform, Linking,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import api from "../services/api";
+import api, { blockchainAPI, vcrAPI } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { COLORS, FONTS, SPACING, RADIUS } from "../constants/theme";
@@ -18,30 +26,32 @@ try {
   const webrtc = require("react-native-webrtc");
   RTCPeerConnection = webrtc.RTCPeerConnection;
   mediaDevices = webrtc.mediaDevices;
-} catch {
-  // WebRTC not available - audio features disabled
-}
+} catch { /* WebRTC not available */ }
 
+// ─── Types ───────────────────────────────────────────────────────────────────
 type NavProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteRef = RouteProp<RootStackParamList, "VCRoom">;
+type PanelCategory = "tech" | "philosophy" | "spiritual" | "business";
 
-// Types
 interface Participant {
   id: string;
   backendId: number;
   name: string;
-  role: "host" | "cohost" | "speaker" | "listener";
+  role: "host" | "cohost" | "speaker" | "listener" | "ai";
   muted: boolean;
   handRaised: boolean;
   peerId?: string;
+  isAI?: boolean;
+  tokensEarned?: number;
 }
 
 interface ChatMessage {
   id: string | number;
-  from: { id: number; name: string };
+  from: { id: number | string; name: string };
   text: string;
   time: string;
   mine: boolean;
+  isAI?: boolean;
 }
 
 interface Room {
@@ -51,23 +61,40 @@ interface Room {
   hostName: string;
   memberCount: number;
   isActive: boolean;
+  category: PanelCategory;
+  tokenPool: number;
 }
 
-// Constants
+interface TokenBalance {
+  seekho: number;
+  solanaAddress?: string;
+  pendingWithdraw: number;
+}
+
+// ─── Constants ───────────────────────────────────────────────────────────────
 const MAX_SPEAKERS = 3;
-const MAX_COHOSTS = 2;
+const AI_JOIN_DELAY_MS = 60_000;
+const TOKEN_PER_SPEAKER_MINUTE = 2;
+const TOKEN_PER_HOST_MINUTE = 5;
+const TOKEN_PER_UPVOTE = 10;
+const CATEGORY_BONUS: Record<PanelCategory, number> = {
+  tech: 1.5, philosophy: 1.2, spiritual: 1.2, business: 1.3,
+};
+const CATEGORY_META: Record<PanelCategory, { icon: string; color: string; label: string }> = {
+  tech: { icon: "⚡", color: "#00d4ff", label: "Tech" },
+  philosophy: { icon: "🧠", color: "#a78bfa", label: "Philosophy" },
+  spiritual: { icon: "🕉️", color: "#fbbf24", label: "Spiritual" },
+  business: { icon: "📈", color: "#34d399", label: "Business" },
+};
+const ROLE_COLORS = {
+  host: "#ffd700", cohost: "#00d4aa", speaker: "#8b5cf6", listener: "#475569", ai: "#00d4ff",
+};
+const AI_SPEAKER_ID = "ai-speaker-seekho";
+const AI_SPEAKER_NAME = "Seekho AI";
 
 function timeStr() {
   return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
-
-// Color mapping for roles
-const ROLE_COLORS = {
-  host: "#ffd700",
-  cohost: "#00d4aa",
-  speaker: "#8b5cf6",
-  listener: "#a855f7",
-};
 
 // Component
 export default function VCRoom() {
@@ -131,6 +158,8 @@ export default function VCRoom() {
           hostName: p.host_username || p.host_name || "",
           memberCount: p.member_count || 0,
           isActive: p.is_active !== false,
+          category: (p.category || "tech") as PanelCategory,
+          tokenPool: p.token_pool || 0,
         })));
       }
     } catch (e) {
