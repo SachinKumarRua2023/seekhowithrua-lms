@@ -15,7 +15,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { lmsAPI } from "../services/api";
 import { useAuthStore } from "../store/authStore";
 import { RootStackParamList } from "../navigation/AppNavigator";
