@@ -22,14 +22,15 @@ export default function LoginScreen() {
   const handleDeepLink = useCallback(async (event: { url: string }) => {
     const url = event.url;
     
-    if (url.includes('auth/callback') || url.includes('jwt=')) {
+    if (url.includes('auth/callback') || url.includes('token=') || url.includes('jwt=')) {
       setLoading(true);
       try {
-        // Parse JWT and user data from URL
+        // Parse token and user data from URL
         const urlObj = new URL(url);
         const params = new URLSearchParams(urlObj.search);
-        
-        const token = params.get('jwt');
+
+        // Backend sends 'token', support both 'token' and 'jwt' for compatibility
+        const token = params.get('token') || params.get('jwt');
         const userStr = params.get('user');
         
         if (token && userStr) {
