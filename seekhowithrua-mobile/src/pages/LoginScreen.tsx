@@ -94,9 +94,14 @@ export default function LoginScreen() {
       const loginUrl = `${WEB_LOGIN_URL}?redirect_uri=${encodeURIComponent(APP_SCHEME)}`;
       const result = await WebBrowser.openBrowserAsync(loginUrl);
 
-      // When browser closes, check if we got auth via deep link
-      if (result.type === 'cancel' || result.type === 'dismiss') {
-        // User closed browser - check if auth completed via deep link
+      // Handle browser redirect result
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resultAny = result as any;
+      if (resultAny.type === 'success' && resultAny.url) {
+        // Browser redirected to deep link with URL
+        handleDeepLink({ url: resultAny.url });
+      } else if (resultAny.type === 'cancel' || resultAny.type === 'dismiss') {
+        // User closed browser - check if auth completed via deep link listener
         const url = await Linking.getInitialURL();
         if (url && (url.includes('token=') || url.includes('jwt='))) {
           handleDeepLink({ url });
@@ -120,8 +125,14 @@ export default function LoginScreen() {
       const loginUrl = `${WEB_LOGIN_URL}?redirect_uri=${encodeURIComponent(APP_SCHEME)}`;
       const result = await WebBrowser.openBrowserAsync(loginUrl);
 
-      // When browser closes, check if we got auth via deep link
-      if (result.type === 'cancel' || result.type === 'dismiss') {
+      // Handle browser redirect result
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resultAny = result as any;
+      if (resultAny.type === 'success' && resultAny.url) {
+        // Browser redirected to deep link with URL
+        handleDeepLink({ url: resultAny.url });
+      } else if (resultAny.type === 'cancel' || resultAny.type === 'dismiss') {
+        // User closed browser - check if auth completed via deep link listener
         const url = await Linking.getInitialURL();
         if (url && (url.includes('token=') || url.includes('jwt='))) {
           handleDeepLink({ url });
