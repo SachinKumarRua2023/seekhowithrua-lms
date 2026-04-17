@@ -6,22 +6,25 @@ import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, AppState
 } from 'react-native';
 import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { useAuthStore } from '../store/authStore';
 import { COLORS, FONTS, SPACING, RADIUS } from '../constants/theme';
 
 // Deep link scheme
 const APP_SCHEME = 'seekhowithrua://auth/callback';
 const WEB_LOGIN_URL = 'https://app.seekhowithrua.com/mobile-login';
-const GOOGLE_LOGIN_URL = 'https://api.seekhowithrua.com/api/auth/google/';
 
 export default function LoginScreen() {
   const { setAuth } = useAuthStore();
   const [loading, setLoading] = useState(false);
 
+  // Track if we opened browser for login
+  const loginPendingRef = useRef(false);
+
   // Handle deep link callback from web login
   const handleDeepLink = useCallback(async (event: { url: string }) => {
     const url = event.url;
-    
+
     if (url.includes('auth/callback') || url.includes('token=') || url.includes('jwt=')) {
       setLoading(true);
       try {
@@ -32,7 +35,7 @@ export default function LoginScreen() {
         // Backend sends 'token', support both 'token' and 'jwt' for compatibility
         const token = params.get('token') || params.get('jwt');
         const userStr = params.get('user');
-        
+
         if (token && userStr) {
           const user = JSON.parse(decodeURIComponent(userStr));
           await setAuth(token, user);
@@ -82,36 +85,52 @@ export default function LoginScreen() {
     };
   }, [handleDeepLink]);
 
-  // Track if we opened browser for login
-  const loginPendingRef = useRef(false);
-
-  // Open web login in browser
+  // Open web login in modal browser (properly handles OAuth)
   const handleLogin = async () => {
     setLoading(true);
     loginPendingRef.current = true;
     try {
       // Add redirect URL to web login
       const loginUrl = `${WEB_LOGIN_URL}?redirect_uri=${encodeURIComponent(APP_SCHEME)}`;
-      await Linking.openURL(loginUrl);
+      const result = await WebBrowser.openBrowserAsync(loginUrl);
+
+      // When browser closes, check if we got auth via deep link
+      if (result.type === 'cancel' || result.type === 'dismiss') {
+        // User closed browser - check if auth completed via deep link
+        const url = await Linking.getInitialURL();
+        if (url && (url.includes('token=') || url.includes('jwt='))) {
+          handleDeepLink({ url });
+        }
+      }
     } catch (error) {
       console.error('Login error:', error);
       Alert.alert('Error', 'Failed to open login page');
+    } finally {
       loginPendingRef.current = false;
       setLoading(false);
     }
   };
 
-  // Handle Google login
+  // Handle Google login - also go through frontend (not direct API)
   const handleGoogleLogin = async () => {
     setLoading(true);
     loginPendingRef.current = true;
     try {
-      const callbackUrl = `https://api.seekhowithrua.com/api/auth/google/callback/?redirect_uri=${encodeURIComponent(APP_SCHEME)}`;
-      const googleUrl = `${GOOGLE_LOGIN_URL}?redirect_uri=${encodeURIComponent(callbackUrl)}`;
-      await Linking.openURL(googleUrl);
+      // Go through frontend login page, user clicks Google button there
+      const loginUrl = `${WEB_LOGIN_URL}?redirect_uri=${encodeURIComponent(APP_SCHEME)}`;
+      const result = await WebBrowser.openBrowserAsync(loginUrl);
+
+      // When browser closes, check if we got auth via deep link
+      if (result.type === 'cancel' || result.type === 'dismiss') {
+        const url = await Linking.getInitialURL();
+        if (url && (url.includes('token=') || url.includes('jwt='))) {
+          handleDeepLink({ url });
+        }
+      }
     } catch (error) {
       console.error('Google login error:', error);
       Alert.alert('Error', 'Failed to open Google login');
+    } finally {
       loginPendingRef.current = false;
       setLoading(false);
     }
